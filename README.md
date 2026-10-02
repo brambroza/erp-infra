@@ -48,9 +48,9 @@ erp-infra/
 │       ├── upstreams.conf.tpl
 │       ├── conf.d/            # 05-common, 10-http, 11-healthz, 20-erp, 21-api, 22-app, 23-n8n, 24-zabbix
 │       └── infra/             # ssl.conf, proxy.conf, ws.conf
-├── data/                      # compose.yml, .env.example, mssql-backup.sh
+├── data/                      # compose.yml, dc.sh, .env.example, mssql-backup.sh
 ├── stacks/erp/                # stack.yml, versions.env, *.env.example, deploy-stack.sh, wait-converge.sh
-├── jenkins/                   # Dockerfile, compose.yml, Jenkinsfile.deploy, Jenkinsfile.build.example
+├── jenkins/                   # Dockerfile, compose.yml, dc.sh, Jenkinsfile.deploy, Jenkinsfile.build.example
 └── docs/                      # architecture.md, runbook.md
 ```
 
@@ -65,6 +65,29 @@ erp-infra/
 6. gw-1 / gw-5: copy wildcard cert → `sudo scripts/10-gateway.sh gw-1` / `gw-5`
 7. vm-jenkins: `sudo scripts/40-jenkins.sh`
 8. ทดสอบ failover ตาม runbook แล้วค่อย cutover
+
+## Compose และวิธีสั่งงาน
+
+compose ทุกไฟล์อยู่ใน repo นี้ที่เดียว (clone ไว้ที่ `/opt/erp-infra` บนทุกเครื่อง) ห้าม copy ไปแก้ที่อื่น
+แต่ละกลุ่มใช้คำสั่งต่างกันตามชนิดของเครื่อง:
+
+| ไฟล์ | เครื่อง | คำสั่ง | เหตุผล |
+|---|---|---|---|
+| `stacks/erp/stack.yml` | vm-service-1 (manager) | `stacks/erp/deploy-stack.sh` (= `docker stack deploy`) | กระจาย 2 เครื่อง, rolling update, ย้าย ticker ตอนเครื่องล่ม |
+| `data/compose.yml` | vm-data-4 | `data/dc.sh up -d` (= `docker compose`) | เครื่องเดียว ไม่ต้องใช้ Swarm |
+| `jenkins/compose.yml` | vm-jenkins | `jenkins/dc.sh up -d --build` | เครื่องเดียว |
+| — (nginx + keepalived บนตัวเครื่อง) | gw-1, gw-5 | `scripts/10-gateway.sh` / `11-sync-gw.sh` | keepalived ต้องจัดการ IP ของเครื่องโดยตรง ไม่ใส่ใน container |
+
+ห้ามรัน `docker compose up` กับ `stacks/erp/stack.yml` บน vm-service: จะได้ container ธรรมดาที่ไม่อยู่ใน Swarm
+ไม่มี rolling update และไม่ย้ายเครื่องตอนล่ม
+
+### เปลี่ยนแปลง service ยังไง
+
+1. แก้ไฟล์ใน repo บนเครื่องตัวเอง → commit → push
+2. บนเครื่องที่เกี่ยวข้อง: `cd /opt/erp-infra && sudo git pull`
+3. apply ด้วยคำสั่งในตารางข้างบน (เช่น `data/dc.sh up -d` จะสร้างใหม่เฉพาะ service ที่ไฟล์เปลี่ยน)
+
+ค่าที่เป็นความลับไม่อยู่ใน repo: `/opt/data/.env`, `stacks/erp/*.env`, `secrets.env` และ cert ใน `/etc/nginx/ssl`
 
 ## กฎของ repo
 

@@ -21,14 +21,14 @@ for ip in "$SVC1_IP" "$SVC2_IP"; do
 done
 ufw allow from "$ADMIN_NET" to any port 15672 proto tcp     # RabbitMQ UI
 
-cp "$DIR/data/compose.yml" /opt/data/compose.yml
 if [ ! -f /opt/data/.env ]; then
   install -m 600 "$DIR/data/.env.example" /opt/data/.env
   sed -i "s/^DATA_IP=.*/DATA_IP=$DATA_IP/" /opt/data/.env
   echo "แก้รหัสผ่านใน /opt/data/.env แล้วรัน script นี้ซ้ำ"
   exit 0
 fi
-docker compose -f /opt/data/compose.yml up -d
+# รัน compose จาก repo ตรง ๆ (repo = ต้นฉบับเดียว) ส่วนรหัสผ่านอยู่ที่ /opt/data/.env
+"$DIR/data/dc.sh" up -d
 
 install -m 750 "$DIR/data/mssql-backup.sh" /usr/local/bin/mssql-backup.sh
 echo "0 1 * * * root /usr/local/bin/mssql-backup.sh >> /var/log/mssql-backup.log 2>&1" > /etc/cron.d/mssql-backup

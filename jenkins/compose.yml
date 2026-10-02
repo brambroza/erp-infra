@@ -1,4 +1,4 @@
-# vm-jenkins — start ด้วย scripts/40-jenkins.sh
+# vm-jenkins — ใช้ผ่าน jenkins/dc.sh หรือ scripts/40-jenkins.sh (ไฟล์นี้อยู่ใน repo ตลอด)
 name: jenkins
 services:
   jenkins:

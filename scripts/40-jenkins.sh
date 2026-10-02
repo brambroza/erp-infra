@@ -9,10 +9,7 @@ source "$DIR/inventory.env"
 mkdir -p /srv/jenkins_home
 chown 1000:1000 /srv/jenkins_home          # uid ของ user jenkins ใน image
 
-JENKINS_IP_BIND="$JENKINS_IP"
-DOCKER_GID="$(getent group docker | cut -d: -f3)"
-export JENKINS_IP_BIND DOCKER_GID
-docker compose -f "$DIR/jenkins/compose.yml" up -d --build
+"$DIR/jenkins/dc.sh" up -d --build
 
 ufw allow from "$ADMIN_NET" to any port 8110 proto tcp
 echo "Jenkins: http://$JENKINS_IP:8110"

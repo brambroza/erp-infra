@@ -8,7 +8,7 @@ set +a
 STAMP=$(date +%F_%H%M)
 
 for db in $MSSQL_BACKUP_DBS; do
-  docker compose -f /opt/data/compose.yml exec -T -e SQLCMDPASSWORD="$MSSQL_SA_PASSWORD" mssql \
+  /opt/erp-infra/data/dc.sh exec -T -e SQLCMDPASSWORD="$MSSQL_SA_PASSWORD" mssql \
     /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b \
     -Q "BACKUP DATABASE [$db] TO DISK='/var/opt/mssql/backup/${db}_${STAMP}.bak' WITH COMPRESSION, CHECKSUM, INIT"
 done
