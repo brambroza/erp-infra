@@ -2,16 +2,18 @@
 
 Infrastructure as code ของระบบ ERP (nisolution.co.th) แบบ High Availability
 
-```
-ผู้ใช้ → Router (443) → VIP → gw-1 (MASTER) / gw-5 (BACKUP)
-                              ↓
-              vm-service-1 (Swarm manager) + vm-service-2 (worker)
-              erpapp · erpapi · chat-api · ticker
-                              ↓
-              vm-data-4: SQL Server · Redis · RabbitMQ · NFS (Data API files)
+<p align="center">
+  <img src="docs/infra-diagram.svg" alt="ERP infra: ผู้ใช้ → Router → VIP (gw-1 MASTER / gw-5 BACKUP) → Swarm vm-service-1 / vm-service-2 → vm-data-4 และ vm-jenkins deploy เข้า vm-service-1" width="100%">
+</p>
 
-vm-jenkins → ssh → vm-service-1 → rolling update ทีละเครื่อง
-```
+**Flow แบบย่อ**
+
+| สถานการณ์ | เส้นทาง | ผล |
+|---|---|---|
+| ปกติ | ผู้ใช้ → Router → VIP / gw-1 → vm-service-1 หรือ 2 → vm-data-4 | โหลดแบ่งครึ่ง chat/SignalR ผู้ใช้คนเดิมไปเครื่องเดิม |
+| gw-1 ล่ม | ผู้ใช้ → Router → VIP / gw-5 → vm-service-1 หรือ 2 | สะดุด 3–5 วินาที ไม่ต้องแก้ Router หรือ DNS |
+| vm-service-1 ล่ม | gw → vm-service-2 เท่านั้น → vm-data-4 | ระบบยังใช้ได้ ticker ย้ายไป vm-service-2 แต่ deploy ไม่ได้จนกว่า manager กลับมา |
+| Deploy | vm-jenkins → build + push → ssh vm-service-1 → อัปเดตทีละเครื่อง | ไม่ต้องปิดระบบ health ไม่ผ่านจะ rollback เอง |
 
 รายละเอียด diagram, flow และ resource อยู่ใน [docs/architecture.md](docs/architecture.md)
 ขั้นตอนติดตั้ง ทดสอบ และย้ายระบบอยู่ใน [docs/runbook.md](docs/runbook.md)

@@ -2,6 +2,10 @@
 
 ## Diagram
 
+![ERP infra diagram](infra-diagram.svg)
+
+แบบ Mermaid (แก้ง่ายใน Git):
+
 ```mermaid
 flowchart LR
     U[ผู้ใช้<br/>HTTPS 443] --> R[Router<br/>port forward 443 → VIP]
