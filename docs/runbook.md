@@ -1,9 +1,28 @@
 # Runbook
 
-## 0. เตรียม
+## 0. เช็กเครื่องเดิมก่อน (ไม่กระทบระบบ)
+
+```bash
+sudo git clone https://github.com/brambroza/erp-infra /opt/erp-infra
+sudo SA_PASS='รหัส sa' /opt/erp-infra/scripts/00-audit-legacy.sh
+```
+
+script อ่านอย่างเดียว ได้ไฟล์ `/root/legacy-audit-<วันที่>.tar.gz` ใช้ข้อมูลในนั้นแก้ค่าใน repo:
+
+| ดูจากไฟล์ | เอาไปแก้ที่ |
+|---|---|
+| `host.txt` (IP, interface) | `inventory.env` (`LEGACY_IP`, `IFACE`) |
+| `image-of-each.txt` | `stacks/erp/versions.env` (tag ที่รันอยู่จริง) |
+| `mounts.txt`, `volume-sizes.txt` | path ของ volume erpapi ใน `stacks/erp/stack.yml` และขนาด disk ของ vm-data-4 |
+| `env/*.env` | `stacks/erp/*.env` (เปลี่ยน host ของ DB/Redis/RabbitMQ เป็น vm-data-4) |
+| `mssql.txt`, `redis.txt`, `rabbitmq.txt` | tag image ใน `data/compose.yml` และ `MSSQL_PID` |
+| `legacy-ports.txt` | ยืนยันว่า 3030 / 5678 / 10053 คืออะไร |
+| `docker-stats.txt` | ยืนยัน spec RAM ของแต่ละ VM |
+
+## 0.1 เตรียม
 
 - เลือก IP ที่ว่างจริงแล้วแก้ `inventory.env`
-- clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่อง: `sudo git clone https://github.com/brambroza/erp-infra /opt/erp-infra`
+- clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่องใหม่: `sudo git clone https://github.com/brambroza/erp-infra /opt/erp-infra`
 - บนเครื่องเดิม **ก่อนแตะอะไร**:
   ```bash
   # image ของ ticker ที่ไม่มี tag

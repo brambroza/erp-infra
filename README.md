@@ -34,6 +34,7 @@ erp-infra/
 ├── inventory.env              # hostname / IP ทั้งหมด (แก้ที่นี่ที่เดียว)
 ├── secrets.env.example        # VRRP_PASS → copy เป็น secrets.env
 ├── scripts/
+│   ├── 00-audit-legacy.sh     # เครื่องเดิม: เก็บข้อมูลก่อนย้าย (อ่านอย่างเดียว)
 │   ├── 00-common.sh           # ทุกเครื่อง: hostname, hosts, sysctl, ufw, zabbix-agent, docker
 │   ├── 10-gateway.sh          # gw-1 / gw-5: nginx + keepalived
 │   ├── 11-sync-gw.sh          # รันบน gw-1: sync config (+cert) ไป gw-5
@@ -55,7 +56,8 @@ erp-infra/
 
 ## ลำดับติดตั้งแบบย่อ
 
-1. แก้ `inventory.env` ให้ตรงของจริง แล้ว clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่อง
+0. เครื่องเดิม: `sudo SA_PASS=... scripts/00-audit-legacy.sh` เก็บข้อมูลก่อน (อ่านอย่างเดียว)
+1. แก้ `inventory.env`, `versions.env` และ path volume ตามผล audit แล้ว clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่องใหม่
 2. ทุกเครื่อง: `sudo scripts/00-common.sh <hostname> [--docker]`
 3. vm-data-4: `sudo scripts/20-data.sh` → restore DB → rsync ไฟล์ Data API
 4. vm-service-1: `sudo scripts/30-swarm.sh init` · vm-service-2: `sudo scripts/30-swarm.sh join <token>`
