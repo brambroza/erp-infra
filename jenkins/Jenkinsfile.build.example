@@ -1,0 +1,32 @@
+// ตัวอย่าง job build ของแต่ละ repo แอป (เช่น coreapi-new → erpapi)
+// build → push ด้วย tag เลข build → เรียก job erp-deploy ต่อ
+// Credential: dockerhub (username/password ของ nohservdoc)
+pipeline {
+  agent any
+  environment {
+    IMAGE   = 'nohservdoc/go-crmapi24'
+    TAG     = "b${env.BUILD_NUMBER}"
+    SERVICE = 'erpapi'
+  }
+  stages {
+    stage('Build & Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'U', passwordVariable: 'P')]) {
+          sh '''
+            echo "$P" | docker login -u "$U" --password-stdin
+            docker build -t "$IMAGE:$TAG" .
+            docker push "$IMAGE:$TAG"
+          '''
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        build job: 'erp-deploy', parameters: [
+          string(name: 'SERVICE', value: env.SERVICE),
+          string(name: 'TAG', value: env.TAG)
+        ]
+      }
+    }
+  }
+}

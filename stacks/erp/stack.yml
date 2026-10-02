@@ -1,0 +1,89 @@
+# deploy: ./deploy-stack.sh  (บน vm-service-1 เท่านั้น)
+version: "3.8"
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "20m", max-file: "5" }
+x-place: &place
+  constraints: [node.labels.role == app]
+
+services:
+  # ---------- erpapp (go-crmapp24) ----------
+  erpapp:
+    image: nohservdoc/go-crmapp24:${ERPAPP_TAG}
+    ports:
+      - { target: 80, published: 8284, mode: ingress }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging: *logging
+    deploy:
+      mode: global                       # เครื่องละ 1 ตัว (เครื่องล่มไม่ย้ายมาซ้อน)
+      placement: *place
+      update_config: { parallelism: 1, delay: 10s, order: start-first, failure_action: rollback, monitor: 30s }
+      rollback_config: { parallelism: 1, order: start-first }
+      resources:
+        limits: { cpus: "1.00", memory: 2560M }
+
+  # ---------- erpapi (go-crmapi24) ----------
+  erpapi:
+    image: nohservdoc/go-crmapi24:${ERPAPI_TAG}
+    env_file: ./erpapi.env
+    ports:
+      - { target: 6600, published: 6334, mode: ingress }   # REST: กระจายผ่าน mesh
+      - { target: 6600, published: 6344, mode: host }      # SignalR hubs: sticky จาก Nginx
+    volumes:
+      - erp-files:/app/wwwroot/uploads   # TODO: เปลี่ยนเป็น path เดิมของ volume (ดู mounts.json)
+    # image .NET ไม่มี curl/wget ให้เพิ่มใน Dockerfile และทำ /health ก่อน แล้วค่อยเปิด
+    # healthcheck:
+    #   test: ["CMD", "curl", "-fs", "http://127.0.0.1:6600/health"]
+    #   interval: 10s
+    #   start_period: 30s
+    logging: *logging
+    deploy:
+      mode: global                       # host port ซ้อนกันไม่ได้ → เครื่องละ 1 ตัว
+      placement: *place
+      update_config: { parallelism: 1, delay: 20s, order: stop-first, failure_action: rollback, monitor: 30s }
+      rollback_config: { parallelism: 1, order: stop-first }
+      resources:
+        limits: { cpus: "2.00", memory: 1536M }
+        reservations: { memory: 256M }
+
+  # ---------- chat-api (go-chat-api) ----------
+  chat-api:
+    image: nohservdoc/go-chat-api:${CHATAPI_TAG}
+    env_file: ./chat-api.env
+    ports:
+      - { target: 3000, published: 6335, mode: host }      # sticky จาก Nginx ถึง container จริง
+    logging: *logging
+    deploy:
+      mode: global
+      placement: *place
+      update_config: { parallelism: 1, delay: 20s, order: stop-first, failure_action: rollback, monitor: 30s }
+      rollback_config: { parallelism: 1, order: stop-first }
+      resources:
+        limits: { cpus: "1.00", memory: 768M }
+
+  # ---------- ticker (go-ticker-job) ----------
+  ticker:
+    image: nohservdoc/go-ticker-job:${TICKER_TAG}
+    env_file: ./ticker.env
+    logging: *logging
+    deploy:
+      replicas: ${TICKER_REPLICAS}       # 1 เสมอ (0 ระหว่างย้ายระบบ) ห้ามเกิน 1 ไม่อย่างนั้น job รันซ้ำ
+      placement: *place
+      update_config: { parallelism: 1, order: stop-first, failure_action: rollback }
+      rollback_config: { parallelism: 1, order: stop-first }
+      restart_policy: { condition: any, delay: 10s }
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
+
+volumes:
+  erp-files:                             # Data API files บน vm-data-4
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=${DATA_IP},rw,nfsvers=4,hard,timeo=600"
+      device: ":/srv/nfs/erp-files"

@@ -1,0 +1,37 @@
+# vm-data-4 → /opt/data/compose.yml  (ค่าใน /opt/data/.env)
+name: data
+services:
+  mssql:
+    # pin CU ที่ทดสอบแล้ว ห้ามต่ำกว่าเวอร์ชันเดิม (เช็กด้วย SELECT @@VERSION)
+    image: mcr.microsoft.com/mssql/server:2022-CU16-ubuntu-22.04
+    restart: unless-stopped
+    hostname: vm-data-4-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: ${MSSQL_PID}                    # Standard / Enterprise ตาม license
+      MSSQL_MEMORY_LIMIT_MB: ${MSSQL_MEMORY_LIMIT_MB}
+      TZ: Asia/Bangkok
+    ports: ["${DATA_IP}:1433:1433"]
+    volumes: ["/srv/mssql:/var/opt/mssql"]
+    ulimits: { nofile: { soft: 65535, hard: 65535 } }
+
+  redis:
+    image: redis:7.4                             # ใช้ major เดียวกับเครื่องเดิม
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes",
+              "--maxmemory", "768mb", "--maxmemory-policy", "volatile-lru"]
+    ports: ["${DATA_IP}:6379:6379"]
+    volumes: ["/srv/redis:/data"]
+    mem_limit: 1g
+
+  rabbitmq:
+    image: rabbitmq:4.0-management               # ใช้ major เดียวกับเครื่องเดิม
+    restart: unless-stopped
+    hostname: vm-data-4-rabbit                   # RabbitMQ ผูกข้อมูลกับ hostname ต้องคงที่
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports: ["${DATA_IP}:5672:5672", "${DATA_IP}:15672:15672"]
+    volumes: ["/srv/rabbitmq:/var/lib/rabbitmq"]
+    mem_limit: 1g

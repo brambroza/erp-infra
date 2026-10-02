@@ -1,0 +1,18 @@
+# secrets — ห้าม commit
+secrets.env
+.env
+*.env
+!inventory.env
+!*.env.example
+!stacks/erp/versions.env
+
+# ssl / keys
+*.key
+*.pem
+*.crt
+gateway/nginx/ssl/
+
+# local
+*.bak
+*.log
+.DS_Store

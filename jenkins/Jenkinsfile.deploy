@@ -1,0 +1,49 @@
+// Job: erp-deploy  — deploy image ที่ push แล้วเข้า Swarm แบบ rolling
+// Credential ที่ต้องมี: swarm-manager-ssh (SSH private key ของ user deploy บน vm-service-1)
+pipeline {
+  agent any
+  parameters {
+    choice(name: 'SERVICE', choices: ['erpapi', 'erpapp', 'chat-api', 'ticker'], description: 'service ที่จะ deploy')
+    string(name: 'TAG', defaultValue: '', description: 'image tag ที่ push แล้ว เช่น b152')
+  }
+  environment {
+    MANAGER   = 'deploy@192.168.88.111'          // vm-service-1
+    STACK_DIR = '/opt/erp-infra/stacks/erp'
+  }
+  options {
+    disableConcurrentBuilds()
+    timeout(time: 15, unit: 'MINUTES')
+  }
+  stages {
+    stage('Resolve') {
+      steps {
+        script {
+          if (!params.TAG?.trim()) { error 'ต้องระบุ TAG' }
+          env.IMAGE_TAG = params.TAG.trim()
+          env.VAR = [
+            'erpapi'  : 'ERPAPI_TAG',
+            'erpapp'  : 'ERPAPP_TAG',
+            'chat-api': 'CHATAPI_TAG',
+            'ticker'  : 'TICKER_TAG'
+          ][params.SERVICE]
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sshagent(['swarm-manager-ssh']) {
+          sh '''
+            ssh -o BatchMode=yes "$MANAGER" "cd $STACK_DIR \
+              && sed -i 's/^${VAR}=.*/${VAR}=${IMAGE_TAG}/' versions.env \
+              && ./deploy-stack.sh \
+              && ./wait-converge.sh erp_${SERVICE} 300"
+          '''
+        }
+      }
+    }
+  }
+  post {
+    success { echo "deploy ${params.SERVICE}:${params.TAG} สำเร็จ" }
+    failure { echo "deploy ${params.SERVICE}:${params.TAG} ไม่ผ่าน — Swarm rollback ให้แล้ว ตรวจด้วย docker service ps erp_${params.SERVICE}" }
+  }
+}

@@ -1,0 +1,137 @@
+# Runbook
+
+## 0. เตรียม
+
+- เลือก IP ที่ว่างจริงแล้วแก้ `inventory.env`
+- clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่อง: `sudo git clone https://github.com/brambroza/erp-infra /opt/erp-infra`
+- บนเครื่องเดิม **ก่อนแตะอะไร**:
+  ```bash
+  # image ของ ticker ที่ไม่มี tag
+  docker tag 773b7a77bb63 nohservdoc/go-ticker-job:legacy-2026-10
+  docker push nohservdoc/go-ticker-job:legacy-2026-10
+
+  # เก็บ env ของ container เดิม
+  /opt/erp-infra/scripts/export-env.sh go-crmapi24 > erpapi.env
+  /opt/erp-infra/scripts/export-env.sh go-chat-api  > chat-api.env
+  /opt/erp-infra/scripts/export-env.sh go-ticker-job > ticker.env
+
+  # เก็บ mount และ RabbitMQ definitions
+  docker inspect -f '{{.Name}} {{json .Mounts}}' $(docker ps -q) > mounts.json
+  docker exec rabbitmq rabbitmqctl export_definitions /tmp/defs.json && docker cp rabbitmq:/tmp/defs.json .
+  ```
+
+## 1. ทุกเครื่อง
+
+```bash
+sudo /opt/erp-infra/scripts/00-common.sh gw-1                     # gateway ไม่ต้องมี docker
+sudo /opt/erp-infra/scripts/00-common.sh gw-5
+sudo /opt/erp-infra/scripts/00-common.sh vm-service-1 --docker
+sudo /opt/erp-infra/scripts/00-common.sh vm-service-2 --docker
+sudo /opt/erp-infra/scripts/00-common.sh vm-data-4    --docker
+sudo /opt/erp-infra/scripts/00-common.sh vm-jenkins   --docker
+```
+
+## 2. vm-data-4
+
+```bash
+sudo /opt/erp-infra/scripts/20-data.sh          # รอบแรกจะสร้าง /opt/data/.env ให้แก้รหัสผ่าน
+sudo vi /opt/data/.env
+sudo /opt/erp-infra/scripts/20-data.sh          # รอบสอง start container
+```
+
+restore SQL Server จากไฟล์ `.bak` ของเครื่องเดิม:
+
+```sql
+RESTORE FILELISTONLY FROM DISK='/var/opt/mssql/backup/crm.bak';
+RESTORE DATABASE [CRMDB] FROM DISK='/var/opt/mssql/backup/crm.bak'
+WITH MOVE 'CRMDB' TO '/var/opt/mssql/data/CRMDB.mdf',
+     MOVE 'CRMDB_log' TO '/var/opt/mssql/data/CRMDB_log.ldf';
+```
+
+copy ไฟล์ Data API (volume ของ go-crmapi24) จากเครื่องเดิม:
+
+```bash
+sudo rsync -aH --numeric-ids <path volume เดิม>/ root@vm-data-4:/srv/nfs/erp-files/
+```
+
+## 3. Swarm
+
+```bash
+# vm-service-1
+sudo /opt/erp-infra/scripts/30-swarm.sh init
+# vm-service-2 (ใช้ token จากคำสั่งบน)
+sudo /opt/erp-infra/scripts/30-swarm.sh join SWMTKN-1-xxxx
+# vm-service-1
+docker node update --label-add role=app vm-service-2
+```
+
+deploy ครั้งแรก (บน vm-service-1):
+
+```bash
+cd /opt/erp-infra/stacks/erp
+for s in erpapi chat-api ticker; do sudo install -m 600 $s.env.example $s.env; done   # แล้วใส่ค่าจริง
+vi versions.env                                                                       # ใส่ tag ของแต่ละ image
+docker login
+./deploy-stack.sh
+docker stack ps erp --format 'table {{.Name}}\t{{.Node}}\t{{.CurrentState}}'
+```
+
+> ระหว่างที่เครื่องเดิมยังรัน ticker อยู่ ให้ตั้ง `TICKER_REPLICAS=0` ใน versions.env ก่อน ห้ามรัน ticker พร้อมกัน 2 ที่
+
+## 4. Gateway
+
+```bash
+# จากเครื่องเดิม copy wildcard cert ไป gw ทั้งสอง
+for gw in gw-1 gw-5; do
+  ssh root@$gw 'mkdir -p /etc/nginx/ssl && chmod 700 /etc/nginx/ssl'
+  scp /etc/nginx/ssl/{fullchain_nisolution.crt,star_nisolution_co_th.key,ca-bundle.crt} root@$gw:/etc/nginx/ssl/
+done
+
+# gw-1 และ gw-5
+sudo cp /opt/erp-infra/secrets.env.example /opt/erp-infra/secrets.env && sudo vi /opt/erp-infra/secrets.env
+sudo /opt/erp-infra/scripts/10-gateway.sh gw-1     # บน gw-5 ใช้ gw-5
+ip -br addr show                                    # เครื่องที่ถือ VIP จะเห็น VIP
+```
+
+แก้ config ทีหลัง: แก้ใน repo บน gw-1 แล้วรัน `scripts/11-sync-gw.sh` (เพิ่ม `--cert` เมื่อเปลี่ยน cert)
+
+## 5. vm-jenkins
+
+```bash
+sudo /opt/erp-infra/scripts/40-jenkins.sh
+```
+
+ย้าย `jenkins_home` จากเครื่องเดิมมาไว้ที่ `/srv/jenkins_home` ก่อน start ถ้าต้องการเก็บ job เดิม
+เพิ่ม credential `swarm-manager-ssh` (SSH key ของ user `deploy` บน vm-service-1) แล้วสร้าง job จาก `jenkins/Jenkinsfile.deploy`
+
+## 6. ทดสอบก่อนเปิดใช้จริง
+
+ยิง request ต่อเนื่องจากเครื่องข้างนอกระหว่างทดสอบทุกข้อ:
+
+```bash
+while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://api.nisolution.co.th/)"; sleep 0.5; done
+```
+
+| ทดสอบ | คำสั่ง | ผลที่ถูกต้อง |
+|---|---|---|
+| Nginx บน gw-1 ล่ม | `gw-1: sudo systemctl stop nginx` | VIP ย้ายไป gw-5 ภายใน 5 วินาที และกลับมาเมื่อ start ใหม่ |
+| gw-1 ดับทั้งเครื่อง | ปิด VM gw-1 | error ไม่เกิน 2–3 ครั้งแล้วกลับเป็นปกติ |
+| vm-service-2 ออกจาก cluster | `docker node update --availability drain vm-service-2` | ระบบตอบปกติ แล้วคืนด้วย `--availability active` |
+| vm-service-1 ดับ | ปิด VM | แอปยังตอบผ่าน vm-service-2 และ ticker ย้ายไป vm-service-2 |
+| Deploy เวอร์ชันเสีย | deploy tag ที่ health ไม่ผ่าน | Swarm rollback และ job Jenkins fail |
+| Restore DB | restore `.bak` ล่าสุดลง DB ทดสอบ | restore ผ่านและข้อมูลตรง |
+
+## 7. Cutover
+
+1. หยุด go-crmapi24, go-chat-api และ go-ticker-job บนเครื่องเดิม
+2. backup → restore SQL รอบสุดท้าย และ rsync ไฟล์ Data API รอบสุดท้าย
+3. รอให้ queue ของ RabbitMQ ว่าง แล้ว import definitions เข้า vm-data-4
+4. ตั้ง `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh`
+5. เปลี่ยน port forward 80/443 บน Router ให้ชี้ไปที่ VIP
+6. ไล่ทดสอบตามตารางข้อ 6
+7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ gw-1/gw-5 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
+
+## Rollback
+
+- **ย้อนเวอร์ชันแอป:** แก้ tag ใน `versions.env` กลับเป็นค่าเดิม แล้ว `./deploy-stack.sh`
+- **ย้อนทั้งระบบระหว่าง cutover:** เปลี่ยน port forward บน Router กลับไปเครื่องเดิม แล้ว start container เดิม

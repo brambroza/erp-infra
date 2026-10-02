@@ -1,0 +1,17 @@
+# vm-jenkins — start ด้วย scripts/40-jenkins.sh
+name: jenkins
+services:
+  jenkins:
+    build: .
+    image: local/jenkins:lts-docker
+    restart: unless-stopped
+    ports:
+      - "${JENKINS_IP_BIND}:8110:8080"      # เปิดเฉพาะ IP ภายใน (ไม่เปิด 50000 เพราะไม่ใช้ agent แยก)
+    group_add:
+      - "${DOCKER_GID}"                     # ให้ user jenkins ใช้ docker socket ได้
+    environment:
+      JAVA_OPTS: "-Xmx2g -Duser.timezone=Asia/Bangkok"
+      TZ: Asia/Bangkok
+    volumes:
+      - /srv/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
