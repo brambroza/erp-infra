@@ -48,6 +48,20 @@ flowchart LR
 
 port แบบ **host mode** ทำให้ Nginx ส่งผู้ใช้คนเดิมไปถึง container ตัวเดิมจริง ซึ่ง SignalR และ socket.io ต้องการ
 
+## Cloudflare และ VIP
+
+```
+ผู้ใช้ → Cloudflare (proxied) → public IP ของ router :443 → dst-nat → VIP 192.168.88.100 → gw-1 / gw-2
+คนในออฟฟิศ → DNS ภายใน → VIP 192.168.88.100 ตรง (ไม่อ้อมออก internet)
+```
+
+- VIP เป็น IP ภายใน ข้างนอกไม่เห็น ข้างนอกเห็นแค่ IP ของ Cloudflare หรือ public IP ของ router
+- `gateway/nginx/conf.d/06-cloudflare-realip.conf` ทำให้ Nginx ใช้ `CF-Connecting-IP` เป็น IP ผู้ใช้ ซึ่งจำเป็นต่อ sticky ของ hub/chat และ log
+- router รับ 80/443 เฉพาะจาก IP ของ Cloudflare กันคนยิงตรงเข้า public IP (ตัวอย่าง MikroTik: `docs/router/mikrotik-cloudflare.rsc`)
+- Cloudflare SSL/TLS ตั้งเป็น **Full (strict)** ใช้ wildcard cert เดิมบน gateway ได้เลย
+- Cloudflare แผน Free/Pro รับ upload ได้ไม่เกิน 100 MB ต่อ request แม้ Nginx ของ api จะตั้งไว้ 120M
+- รายการ IP ของ Cloudflare เปลี่ยนนาน ๆ ครั้ง ให้เช็ก https://www.cloudflare.com/ips/ ปีละครั้ง
+
 ## Flow
 
 ### ปกติ
