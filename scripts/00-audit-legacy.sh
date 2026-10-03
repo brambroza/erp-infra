@@ -70,5 +70,13 @@ cd /root && tar czf "$OUT.tar.gz" "$(basename "$OUT")" && chmod 600 "$OUT.tar.gz
 echo
 echo "เสร็จ: $OUT.tar.gz"
 echo "ไฟล์นี้มี env และรหัสผ่านของทุก container — เก็บไว้ในเครื่องเท่านั้น"
-echo "ที่ส่งให้ทีม/Claude ได้: docker-ps.txt docker-images.txt docker-stats.txt mounts.txt volume-sizes.txt"
-echo "                      image-of-each.txt legacy-ports.txt host.txt redis.txt rabbitmq.txt mssql.txt (ไม่มีรหัสผ่าน)"
+echo "ส่งให้ทีม/Claude ได้ (ไม่มีรหัสผ่าน):"
+echo "  host.txt listen.txt ufw.txt legacy-ports.txt nginx.txt ssl.txt"
+echo "  docker-ps.txt docker-images.txt docker-stats.txt docker-df.txt image-of-each.txt"
+echo "  mounts.txt volume-sizes.txt redis.txt rabbitmq.txt postgres.txt mssql.txt jenkins.txt"
+echo "ห้ามส่ง: env/ inspect/  ·  cron.txt ให้เปิดดูก่อน (บางคำสั่งอาจมีรหัสผ่านอยู่ในบรรทัด)"
+echo
+echo "รวมไฟล์ที่ส่งได้ไว้ที่ /tmp/audit-safe.tgz:"
+echo "  sudo tar czf /tmp/audit-safe.tgz -C $OUT host.txt listen.txt ufw.txt legacy-ports.txt nginx.txt ssl.txt \\"
+echo "    docker-ps.txt docker-images.txt docker-stats.txt docker-df.txt image-of-each.txt mounts.txt volume-sizes.txt \\"
+echo "    redis.txt rabbitmq.txt postgres.txt mssql.txt jenkins.txt && sudo chown \$SUDO_USER /tmp/audit-safe.tgz"
