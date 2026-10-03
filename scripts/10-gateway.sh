@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ติดตั้ง Nginx + keepalived บน gateway
-# ใช้: sudo ./10-gateway.sh gw-1|gw-5 [--nginx-only]
+# ใช้: sudo ./10-gateway.sh gw-1|gw-2 [--nginx-only]
 set -euo pipefail
-ROLE="${1:?ระบุ hostname ของ gateway เช่น gw-1 หรือ gw-5}"
+ROLE="${1:?ระบุ hostname ของ gateway เช่น gw-1 หรือ gw-2}"
 MODE="${2:-full}"
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env

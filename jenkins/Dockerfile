@@ -1,4 +1,4 @@
-# Jenkins LTS + docker cli สำหรับ build image ผ่าน docker socket ของ vm-jenkins
+# Jenkins LTS + docker cli สำหรับ build image ผ่าน docker socket ของ vm-deploy
 FROM jenkins/jenkins:lts-jdk17
 
 USER root

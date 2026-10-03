@@ -43,11 +43,11 @@ script อ่านอย่างเดียว ได้ไฟล์ `/root/l
 
 ```bash
 sudo /opt/erp-infra/scripts/00-common.sh gw-1                     # gateway ไม่ต้องมี docker
-sudo /opt/erp-infra/scripts/00-common.sh gw-5
+sudo /opt/erp-infra/scripts/00-common.sh gw-2
 sudo /opt/erp-infra/scripts/00-common.sh vm-service-1 --docker
 sudo /opt/erp-infra/scripts/00-common.sh vm-service-2 --docker
 sudo /opt/erp-infra/scripts/00-common.sh vm-data-4    --docker
-sudo /opt/erp-infra/scripts/00-common.sh vm-jenkins   --docker
+sudo /opt/erp-infra/scripts/00-common.sh vm-deploy   --docker
 ```
 
 ## 2. vm-data-4
@@ -101,20 +101,20 @@ docker stack ps erp --format 'table {{.Name}}\t{{.Node}}\t{{.CurrentState}}'
 
 ```bash
 # จากเครื่องเดิม copy wildcard cert ไป gw ทั้งสอง
-for gw in gw-1 gw-5; do
+for gw in gw-1 gw-2; do
   ssh root@$gw 'mkdir -p /etc/nginx/ssl && chmod 700 /etc/nginx/ssl'
   scp /etc/nginx/ssl/{fullchain_nisolution.crt,star_nisolution_co_th.key,ca-bundle.crt} root@$gw:/etc/nginx/ssl/
 done
 
-# gw-1 และ gw-5
+# gw-1 และ gw-2
 sudo cp /opt/erp-infra/secrets.env.example /opt/erp-infra/secrets.env && sudo vi /opt/erp-infra/secrets.env
-sudo /opt/erp-infra/scripts/10-gateway.sh gw-1     # บน gw-5 ใช้ gw-5
+sudo /opt/erp-infra/scripts/10-gateway.sh gw-1     # บน gw-2 ใช้ gw-2
 ip -br addr show                                    # เครื่องที่ถือ VIP จะเห็น VIP
 ```
 
 แก้ config ทีหลัง: แก้ใน repo บน gw-1 แล้วรัน `scripts/11-sync-gw.sh` (เพิ่ม `--cert` เมื่อเปลี่ยน cert)
 
-## 5. vm-jenkins
+## 5. vm-deploy
 
 ```bash
 sudo /opt/erp-infra/scripts/40-jenkins.sh
@@ -133,7 +133,7 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 
 | ทดสอบ | คำสั่ง | ผลที่ถูกต้อง |
 |---|---|---|
-| Nginx บน gw-1 ล่ม | `gw-1: sudo systemctl stop nginx` | VIP ย้ายไป gw-5 ภายใน 5 วินาที และกลับมาเมื่อ start ใหม่ |
+| Nginx บน gw-1 ล่ม | `gw-1: sudo systemctl stop nginx` | VIP ย้ายไป gw-2 ภายใน 5 วินาที และกลับมาเมื่อ start ใหม่ |
 | gw-1 ดับทั้งเครื่อง | ปิด VM gw-1 | error ไม่เกิน 2–3 ครั้งแล้วกลับเป็นปกติ |
 | vm-service-2 ออกจาก cluster | `docker node update --availability drain vm-service-2` | ระบบตอบปกติ แล้วคืนด้วย `--availability active` |
 | vm-service-1 ดับ | ปิด VM | แอปยังตอบผ่าน vm-service-2 และ ticker ย้ายไป vm-service-2 |
@@ -148,7 +148,7 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 4. ตั้ง `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh`
 5. เปลี่ยน port forward 80/443 บน Router ให้ชี้ไปที่ VIP
 6. ไล่ทดสอบตามตารางข้อ 6
-7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ gw-1/gw-5 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
+7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ gw-1/gw-2 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
 
 ## Rollback
 

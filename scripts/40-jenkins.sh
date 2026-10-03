@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# vm-jenkins: Jenkins LTS + docker cli (build image ผ่าน docker socket ของเครื่อง)
-# ใช้: sudo ./40-jenkins.sh   (หลัง 00-common.sh vm-jenkins --docker)
+# vm-deploy: Jenkins LTS + docker cli (build image ผ่าน docker socket ของเครื่อง)
+# ใช้: sudo ./40-jenkins.sh   (หลัง 00-common.sh vm-deploy --docker)
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env

@@ -11,7 +11,7 @@ vrrp_script chk_nginx {
     interval 2
     fall 2
     rise 2
-    weight -30          # gw-1: 110 → 80 (ต่ำกว่า gw-5 = 100) VIP จึงย้าย
+    weight -30          # gw-1: 110 → 80 (ต่ำกว่า gw-2 = 100) VIP จึงย้าย
 }
 
 vrrp_instance VI_ERP {
