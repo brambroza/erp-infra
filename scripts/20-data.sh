@@ -19,7 +19,7 @@ exportfs -ra
 for ip in "$SVC1_IP" "$SVC2_IP"; do
   ufw allow from "$ip" to any port 1433,6379,5672,2049 proto tcp
 done
-ufw allow from "$ADMIN_NET" to any port 15672 proto tcp     # RabbitMQ UI
+for net in $ADMIN_NET; do ufw allow from "$net" to any port 15672 proto tcp; done     # RabbitMQ UI
 
 if [ ! -f /opt/data/.env ]; then
   install -m 600 "$DIR/data/.env.example" /opt/data/.env

@@ -11,6 +11,6 @@ chown 1000:1000 /srv/jenkins_home          # uid ของ user jenkins ใน i
 
 "$DIR/jenkins/dc.sh" up -d --build
 
-ufw allow from "$ADMIN_NET" to any port 8110 proto tcp
+for net in $ADMIN_NET; do ufw allow from "$net" to any port 8110 proto tcp; done
 echo "Jenkins: http://$JENKINS_IP:8110"
 echo "รหัสเริ่มต้น (ถ้าเป็นการติดตั้งใหม่): sudo cat /srv/jenkins_home/secrets/initialAdminPassword"

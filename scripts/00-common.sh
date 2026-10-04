@@ -45,7 +45,31 @@ systemctl restart zabbix-agent
 
 ufw default deny incoming
 ufw default allow outgoing
-ufw allow from "$ADMIN_NET" to any port 22 proto tcp
+# ADMIN_NET รับได้หลายวง คั่นด้วยช่องว่าง เช่น "192.168.88.0/24 10.212.134.0/24"
+for net in $ADMIN_NET; do
+  ufw allow from "$net" to any port 22 proto tcp
+done
+# กันพลาด: ถ้ามี SSH session ที่ต่ออยู่จาก IP นอก ADMIN_NET ให้หยุดก่อนเปิด firewall (ไม่งั้นโดนตัดทันที)
+peers=$(ss -Htn state established '( sport = :22 )' | awk '{print $NF}')
+if ! python3 - "$ADMIN_NET" $peers <<'PY'
+import ipaddress, sys
+nets = [ipaddress.ip_network(n, strict=False) for n in sys.argv[1].split()]
+bad = []
+for p in sys.argv[2:]:
+    host = p.rsplit(":", 1)[0].strip("[]")
+    ip = ipaddress.ip_address(host)
+    if getattr(ip, "ipv4_mapped", None):
+        ip = ip.ipv4_mapped
+    if not any(ip in n for n in nets):
+        bad.append(str(ip))
+if bad:
+    print("SSH จาก " + ", ".join(sorted(set(bad))) + " ไม่อยู่ใน ADMIN_NET", file=sys.stderr)
+    sys.exit(1)
+PY
+then
+  echo "หยุด: ถ้าเปิด firewall ตอนนี้ SSH ที่ใช้อยู่จะโดนตัด — เพิ่มวง IP นั้นใน ADMIN_NET (inventory.env) ก่อน" >&2
+  exit 1
+fi
 ufw allow from "$ZABBIX_SERVER" to any port 10050 proto tcp
 ufw --force enable
 
