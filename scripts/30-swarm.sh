@@ -6,7 +6,30 @@ DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env
 source "$DIR/inventory.env"
 
-apt-get -y install nfs-common
+apt-get -y install nfs-common ethtool
+
+# VMware vmxnet3: checksum ของ VXLAN (overlay, 4789/udp) เพี้ยนเมื่อเปิด tx checksum offload
+# ufw เห็นเป็น INVALID แล้วทิ้ง (log เป็น [UFW BLOCK] ... DPT=4789) → ปิด offload และให้คงอยู่หลัง reboot
+if ethtool -i "$IFACE" 2>/dev/null | grep -q 'driver: vmxnet3'; then
+  cat > /etc/systemd/system/swarm-vxlan-fix.service <<UNIT
+[Unit]
+Description=Disable tx checksum offload on $IFACE for Docker overlay (vmxnet3)
+After=network-online.target
+Wants=network-online.target
+Before=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K $IFACE tx-checksum-ip-generic off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+  systemctl daemon-reload
+  systemctl enable --now swarm-vxlan-fix.service
+  echo "vmxnet3: ปิด tx checksum offload บน $IFACE แล้ว"
+fi
 
 for ip in "$SVC1_IP" "$SVC2_IP"; do
   ufw allow from "$ip" to any port 2377,7946 proto tcp
