@@ -32,6 +32,14 @@ fi
 # รัน compose จาก repo ตรง ๆ (repo = ต้นฉบับเดียว) ส่วนรหัสผ่านอยู่ที่ /opt/data/.env
 "$DIR/data/dc.sh" up -d
 
+# คิว webhook ของ chat-api (fb/whatsapp/shopee/lazada/tiktok/internalChat) ไม่มี consumer → ข้อความกองไม่มีวันหมด
+# ถ้าปล่อยไว้ RabbitMQ จะชน memory alarm แล้ว block ทุก publisher รวมถึง log_queue ของ erpapi
+# จำกัดคิวละ 10,000 ข้อความ เก็บ 7 วัน เกินแล้วทิ้งตัวเก่าสุด
+for i in $(seq 30); do "$DIR/data/dc.sh" exec -T rabbitmq rabbitmq-diagnostics -q ping >/dev/null 2>&1 && break; sleep 2; done
+"$DIR/data/dc.sh" exec -T rabbitmq rabbitmqctl set_policy --apply-to queues cap-webhook-queues \
+  '^(fb|whatsapp|shopee|lazada|tiktok|internalChat)Queue$' \
+  '{"max-length":10000,"message-ttl":604800000,"overflow":"drop-head"}'
+
 install -m 750 "$DIR/data/mssql-backup.sh" /usr/local/bin/mssql-backup.sh
 echo "0 1 * * * root /usr/local/bin/mssql-backup.sh >> /var/log/mssql-backup.log 2>&1" > /etc/cron.d/mssql-backup
 echo "vm-data-4 พร้อม"

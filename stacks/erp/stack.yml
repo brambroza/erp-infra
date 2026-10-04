@@ -43,8 +43,13 @@ services:
     #   start_period: 30s
     logging: *logging
     deploy:
-      mode: global                       # host port ซ้อนกันไม่ได้ → เครื่องละ 1 ตัว
-      placement: *place
+      # ยังรันได้แค่ 1 ตัว: SignalR ไม่มี Redis backplane (แจ้งเตือนไม่ข้ามตัว) และ background service รันซ้ำทุกตัว
+      # เครื่องล่ม → Swarm ย้ายไปอีกเครื่องเอง (หยุดราว 30–60 วินาที) · แก้โค้ดแล้วค่อยตั้ง ERPAPI_REPLICAS=2
+      mode: replicated
+      replicas: ${ERPAPI_REPLICAS:-1}
+      placement:
+        constraints: [node.labels.role == app]
+        max_replicas_per_node: 1         # host port ซ้อนกันไม่ได้ → เครื่องละไม่เกิน 1 ตัว
       update_config: { parallelism: 1, delay: 20s, order: stop-first, failure_action: rollback, monitor: 30s }
       rollback_config: { parallelism: 1, order: stop-first }
       resources:
@@ -59,8 +64,13 @@ services:
       - { target: 3000, published: 6335, mode: host }      # sticky จาก Nginx ถึง container จริง
     logging: *logging
     deploy:
-      mode: global
-      placement: *place
+      # ยังรันได้แค่ 1 ตัว: cron 3 job ใน app.js รันซ้ำทุกตัว และ dedupe LINE อยู่ใน memory
+      # (Socket.IO ข้ามตัวได้แล้วผ่าน Redis adapter) · แก้โค้ดแล้วค่อยตั้ง CHATAPI_REPLICAS=2
+      mode: replicated
+      replicas: ${CHATAPI_REPLICAS:-1}
+      placement:
+        constraints: [node.labels.role == app]
+        max_replicas_per_node: 1
       update_config: { parallelism: 1, delay: 20s, order: stop-first, failure_action: rollback, monitor: 30s }
       rollback_config: { parallelism: 1, order: stop-first }
       resources:
