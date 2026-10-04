@@ -1,0 +1,24 @@
+# ใช้ตอนทดสอบบน Swarm ก่อน cutover เท่านั้น:  TEST=1 ./deploy-stack.sh
+# DB ที่ restore มาเป็นข้อมูลจริง และแอปมีงานเบื้องหลังที่ส่งออกไปหาผู้ใช้จริง
+#   - erpapi: NisOverduePushService ส่ง push (Expo) ทุก 15 นาที
+#   - chat-api: cron waitsendmsgagent / JobGetLineFriend ยิง LINE push ทุกนาที
+# ไฟล์นี้ชี้ host ภายนอกเหล่านั้นไปที่ 127.0.0.1 → ส่งไม่ออก (แอปแค่ log error) ลูกค้าไม่ได้รับข้อความซ้ำ
+# ตอน cutover ให้ deploy ปกติ (ไม่ใส่ TEST=1)
+version: "3.8"
+x-block-outbound: &block
+  extra_hosts:
+    - "exp.host:127.0.0.1"
+    - "api.expo.dev:127.0.0.1"
+    - "api.line.me:127.0.0.1"
+    - "api-data.line.me:127.0.0.1"
+    - "notify-api.line.me:127.0.0.1"
+    - "graph.facebook.com:127.0.0.1"
+    - "fcm.googleapis.com:127.0.0.1"
+    - "gmail.googleapis.com:127.0.0.1"
+    - "www.googleapis.com:127.0.0.1"
+    - "smtp.gmail.com:127.0.0.1"
+services:
+  erpapi:
+    <<: *block
+  chat-api:
+    <<: *block

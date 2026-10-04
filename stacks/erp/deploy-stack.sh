@@ -16,4 +16,9 @@ source ../../inventory.env
 # shellcheck disable=SC1091
 source ./versions.env
 set +a
-docker stack deploy -c stack.yml --with-registry-auth erp
+FILES=(-c stack.yml)
+if [ "${TEST:-0}" = 1 ]; then
+  FILES+=(-c stack.test.yml)
+  echo "TEST=1: บล็อก LINE / Expo push / Facebook / Gmail — ใช้ตอนทดสอบก่อน cutover เท่านั้น"
+fi
+docker stack deploy "${FILES[@]}" --with-registry-auth erp
