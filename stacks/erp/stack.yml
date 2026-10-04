@@ -35,7 +35,7 @@ services:
       - { target: 6600, published: 6334, mode: ingress }   # REST: กระจายผ่าน mesh
       - { target: 6600, published: 6344, mode: host }      # SignalR hubs: sticky จาก Nginx
     volumes:
-      - erp-files:/app/wwwroot/uploads   # TODO: เปลี่ยนเป็น path เดิมของ volume (ดู mounts.json)
+      - erp-files:/app/wwwroot           # เดิม: -v /mnt/docker-data/binds/VolumsAPI:/app/wwwroot
     # image .NET ไม่มี curl/wget ให้เพิ่มใน Dockerfile และทำ /health ก่อน แล้วค่อยเปิด
     # healthcheck:
     #   test: ["CMD", "curl", "-fs", "http://127.0.0.1:6600/health"]
@@ -81,7 +81,7 @@ services:
         limits: { cpus: "0.50", memory: 512M }
 
 volumes:
-  erp-files:                             # Data API files บน vm-data-4
+  erp-files:                             # /app/wwwroot ของ erpapi เก็บบน data VM (NFS)
     driver: local
     driver_opts:
       type: nfs

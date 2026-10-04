@@ -14,6 +14,8 @@ apt-get -y install nfs-kernel-server
 if ! grep -q '/srv/nfs/erp-files' /etc/exports; then
   echo "/srv/nfs/erp-files $SVC1_IP(rw,sync,no_subtree_check) $SVC2_IP(rw,sync,no_subtree_check)" >> /etc/exports
 fi
+# erpapi รันเป็น appuser uid 5678 (Dockerfile ของ go-coreapi) — ต้องเขียนไฟล์ได้ผ่าน NFS
+chown 5678:5678 /srv/nfs/erp-files
 exportfs -ra
 
 for ip in "$SVC1_IP" "$SVC2_IP"; do
