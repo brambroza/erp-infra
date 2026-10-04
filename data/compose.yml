@@ -20,10 +20,10 @@ services:
     image: redis:7.4                             # ใช้ major เดียวกับเครื่องเดิม
     restart: unless-stopped
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes",
-              "--maxmemory", "768mb", "--maxmemory-policy", "volatile-lru"]
+              "--maxmemory", "${REDIS_MAXMEMORY:-768mb}", "--maxmemory-policy", "volatile-lru"]
     ports: ["${DATA_IP}:6379:6379"]
     volumes: ["/srv/redis:/data"]
-    mem_limit: 1g
+    mem_limit: ${REDIS_MEM_LIMIT:-1g}
 
   rabbitmq:
     image: rabbitmq:4.0-management               # ใช้ major เดียวกับเครื่องเดิม
@@ -34,4 +34,4 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     ports: ["${DATA_IP}:5672:5672", "${DATA_IP}:15672:15672"]
     volumes: ["/srv/rabbitmq:/var/lib/rabbitmq"]
-    mem_limit: 1g
+    mem_limit: ${RABBITMQ_MEM_LIMIT:-1g}
