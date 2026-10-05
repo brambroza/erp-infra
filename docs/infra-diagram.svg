@@ -55,7 +55,7 @@ text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma,
   <!-- ===== ฝั่งผู้ใช้ ===== -->
   <text class="t1" x="24" y="40">INTERNET</text>
   <rect class="box" x="24" y="120" width="156" height="56" rx="6"/>
-  <text class="t2" x="102" y="145" text-anchor="middle">ผู้ใช้ / LINE webhook</text>
+  <text class="t2" x="102" y="145" text-anchor="middle">ผู้ใช้ </text>
   <text class="t1" x="102" y="164" text-anchor="middle">HTTPS :443</text>
 
   <rect class="box" x="24" y="216" width="156" height="56" rx="6"/>
@@ -65,7 +65,7 @@ text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma,
   <rect class="box" x="24" y="312" width="156" height="70" rx="6"/>
   <text class="t2" x="102" y="337" text-anchor="middle">Router</text>
   <text class="t3" x="102" y="356" text-anchor="middle">port forward 80/443</text>
-  <text class="t1" x="102" y="372" text-anchor="middle">→ VIP .100 (ตอน cutover)</text>
+  <text class="t1" x="102" y="372" text-anchor="middle">→ VIP 192.168.88.100</text>
 
   <path class="ar" d="M102 176V214" marker-end="url(#mm)"/>
   <path class="ar" d="M102 272V310" marker-end="url(#mm)"/>
@@ -95,7 +95,7 @@ text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma,
 
   <!-- ===== Swarm ===== -->
   <rect class="zone" x="452" y="24" width="316" height="510" rx="10"/>
-  <text class="t1" x="464" y="42">DOCKER SWARM · stack "erp"</text>
+  <text class="t1" x="464" y="42">CLUSTER : DOCKER SWARM  </text>
 
   <rect class="box app" x="466" y="56" width="288" height="218" rx="6"/>
   <text class="t1" x="478" y="75">erp-app-01 · 192.168.88.111 · manager</text>
@@ -105,8 +105,7 @@ text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma,
   <text class="mono" x="478" y="160">chat-api  :6335 host      ×1</text>
   <text class="mono" x="478" y="180">ticker    ×1 ทั้ง cluster</text>
   <text class="lbl" x="478" y="198">          (ตอนนี้ 0 จนกว่าจะ cutover)</text>
-  <text class="t1" x="478" y="226">/opt/erp-infra · user deploy</text>
-  <text class="t1" x="478" y="244">versions.env · *.env · deploy-stack.sh</text>
+  <text class="t1" x="478" y="226">/opt/erp-infra  </text> 
   <text class="t1" x="478" y="262">Jenkins ssh เข้าเครื่องนี้เท่านั้น</text>
 
   <rect class="box app" x="466" y="300" width="288" height="218" rx="6"/>
@@ -156,20 +155,7 @@ text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma,
 
   <!-- ===== CI/CD ===== -->
   <text class="t1" x="24" y="592">CI/CD</text>
-  <rect class="box ci" x="24" y="604" width="168" height="72" rx="6"/>
-  <text class="t2" x="108" y="630" text-anchor="middle">GitHub</text>
-  <text class="t1" x="108" y="648" text-anchor="middle">go-crmapp24 · go-coreapi</text>
-  <text class="t1" x="108" y="664" text-anchor="middle">-go-chat-api · push main</text>
-
-  <rect class="box ci" x="226" y="604" width="188" height="72" rx="6"/>
-  <text class="t2" x="320" y="630" text-anchor="middle">GitHub Actions</text>
-  <text class="t1" x="320" y="648" text-anchor="middle">build image</text>
-  <text class="t1" x="320" y="664" text-anchor="middle">tag :latest + :sha-xxxxxxx</text>
-
-  <rect class="box ci" x="452" y="604" width="220" height="72" rx="6"/>
-  <text class="t2" x="562" y="630" text-anchor="middle">Docker Hub</text>
-  <text class="t1" x="562" y="648" text-anchor="middle">nohservdoc/go-crmapp24</text>
-  <text class="t1" x="562" y="664" text-anchor="middle">go-crmapi24 · go-chat-api</text>
+   
 
   <rect class="box ci" x="808" y="604" width="368" height="72" rx="6"/>
   <text class="t1" x="822" y="623">erp-ci-01 · 192.168.88.131 (เครื่องใหม่ แยกจากของเดิม)</text>
