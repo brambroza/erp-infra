@@ -11,9 +11,11 @@ chown -R 10001:0 /srv/mssql        # SQL Server ใน container รันเป
 
 # NFS สำหรับไฟล์ของ erpapi (Data API)
 apt-get -y install nfs-kernel-server
-if ! grep -q '/srv/nfs/erp-files' /etc/exports; then
-  echo "/srv/nfs/erp-files $SVC1_IP(rw,sync,no_subtree_check) $SVC2_IP(rw,sync,no_subtree_check)" >> /etc/exports
-fi
+# erpapi รันเป็น uid 5678 แต่ chat-api รันเป็น root (เครื่องเดิมใช้ --user 0:0) และเขียนโฟลเดอร์เดียวกัน
+# all_squash + anonuid=5678 → ทุก client เขียนเป็นเจ้าของ 5678 เหมือนกัน (root ไม่โดน squash เป็น nobody จนเขียนไม่ได้)
+NFS_OPTS="rw,sync,no_subtree_check,all_squash,anonuid=5678,anongid=5678"
+sed -i '\#^/srv/nfs/erp-files #d' /etc/exports
+echo "/srv/nfs/erp-files $SVC1_IP($NFS_OPTS) $SVC2_IP($NFS_OPTS)" >> /etc/exports
 # erpapi รันเป็น appuser uid 5678 (Dockerfile ของ go-coreapi) — ต้องเขียนไฟล์ได้ผ่าน NFS
 chown 5678:5678 /srv/nfs/erp-files
 exportfs -ra

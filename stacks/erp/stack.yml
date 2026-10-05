@@ -64,6 +64,10 @@ services:
   chat-api:
     image: nohservdoc/go-chat-api:${CHATAPI_TAG}
     env_file: ./chat-api.env
+    volumes:
+      # เครื่องเดิม: -v /mnt/docker-data/binds/VolumsAPI:/usr/src/app/uploads (โฟลเดอร์เดียวกับ /app/wwwroot ของ erpapi)
+      # ไฟล์ LINE / helpdesk ต้องอยู่บน NFS ไม่งั้นหายตอน deploy และ 2 replica เห็นไม่ตรงกัน
+      - erp-files:/usr/src/app/uploads
     ports:
       - { target: 3000, published: 6335, mode: host }      # sticky จาก Nginx ถึง container จริง
     logging: *logging
