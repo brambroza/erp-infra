@@ -1,0 +1,70 @@
+# Template ตรวจจากมุมผู้ใช้: ยิง erp / api ผ่าน VIP ทุกนาที (Zabbix server เป็นผู้ยิง) — Import ใน Zabbix: Data collection (หรือ Configuration) → Templates → Import · format 6.0 ใช้ได้ทั้ง 6.0 / 6.4 / 7.0
+zabbix_export:
+  version: '6.0'
+  groups:
+  - uuid: c74cf4d2816849fa97cd3095aeba6b79
+    name: Templates/ERP
+  templates:
+  - uuid: 1ff3861a37e44242aadf1677b8340813
+    template: ERP Web
+    name: ERP Web
+    description: ใส่ให้ host ที่ไม่มี interface ชื่อ erp-vip · หลัง cutover จะเป็นเส้นทางเดียวกับผู้ใช้ในออฟฟิศ
+    groups:
+    - name: Templates/ERP
+    httptests:
+    - uuid: 14d50393f6ee45e5b383ebb0bb56fc1d
+      name: erp via VIP
+      delay: 1m
+      attempts: '2'
+      agent: Zabbix
+      steps:
+      - name: GET /
+        url: https://{$ERP.VIP}/
+        headers:
+        - name: Host
+          value: erp.nisolution.co.th
+        follow_redirects: 'YES'
+        timeout: 15s
+        status_codes: '200'
+      tags:
+      - tag: component
+        value: web
+    - uuid: 46b8ff5b7cb84ef0ada70911c80c7c6e
+      name: api via VIP
+      delay: 1m
+      attempts: '2'
+      agent: Zabbix
+      steps:
+      - name: GET /
+        url: https://{$ERP.VIP}/
+        headers:
+        - name: Host
+          value: api.nisolution.co.th
+        follow_redirects: 'YES'
+        timeout: 15s
+        status_codes: '200'
+      tags:
+      - tag: component
+        value: web
+    macros:
+    - macro: '{$ERP.VIP}'
+      value: 192.168.88.100
+  triggers:
+  - uuid: 0f68d1409e6240639be8fe59e0837096
+    expression: min(/ERP Web/web.test.fail[erp via VIP],3m)>0
+    name: หน้าเว็บ CRM (erp) เข้าไม่ได้ผ่าน VIP มา 3 นาที — ผู้ใช้เข้าระบบไม่ได้
+    priority: DISASTER
+    description: '{ITEM.LASTVALUE} · เช็ก: curl -sk -o /dev/null -w "%{http_code}" https://192.168.88.100/ -H "Host: erp.nisolution.co.th"'
+  - uuid: 1703e25bda394a0897ebd00ea7e3bd3e
+    expression: avg(/ERP Web/web.test.time[erp via VIP,GET /,resp],5m)>3
+    name: หน้าเว็บ CRM (erp) ตอบช้า (เฉลี่ยเกิน 3 วินาที มา 5 นาที)
+    priority: WARNING
+  - uuid: f0aa2568398043279285469fd852305f
+    expression: min(/ERP Web/web.test.fail[api via VIP],3m)>0
+    name: API (api) เข้าไม่ได้ผ่าน VIP มา 3 นาที — ผู้ใช้เข้าระบบไม่ได้
+    priority: DISASTER
+    description: '{ITEM.LASTVALUE} · เช็ก: curl -sk -o /dev/null -w "%{http_code}" https://192.168.88.100/ -H "Host: api.nisolution.co.th"'
+  - uuid: 2a8ea6636df54a94af0ca876d0ee1367
+    expression: avg(/ERP Web/web.test.time[api via VIP,GET /,resp],5m)>3
+    name: API (api) ตอบช้า (เฉลี่ยเกิน 3 วินาที มา 5 นาที)
+    priority: WARNING

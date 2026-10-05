@@ -1,0 +1,46 @@
+# Template สำหรับ erp-ci-01 (Jenkins) ไม่ต้องรันสคริปต์บนเครื่อง — Import ใน Zabbix: Data collection (หรือ Configuration) → Templates → Import · format 6.0 ใช้ได้ทั้ง 6.0 / 6.4 / 7.0
+zabbix_export:
+  version: '6.0'
+  groups:
+  - uuid: c74cf4d2816849fa97cd3095aeba6b79
+    name: Templates/ERP
+  templates:
+  - uuid: fe775f4e5bdd4933ac5b661bd8156d06
+    template: ERP CI
+    name: ERP CI
+    description: 'erp-ci-01: Jenkins :8110 และ Docker — ล่มแค่ deploy ไม่ได้ ระบบยังใช้งานได้'
+    templates:
+    - name: Linux by Zabbix agent
+    groups:
+    - name: Templates/ERP
+    items:
+    - uuid: ba2e0ae93d964fbdaa6d7500497560b0
+      name: Jenkins ตอบ HTTP
+      key: net.tcp.service[http,{$JENKINS.HOST},{$JENKINS.PORT}]
+      delay: 1m
+      tags:
+      - tag: component
+        value: jenkins
+      triggers:
+      - uuid: e878468bd1884256adce6f1787d35ec1
+        expression: max(/ERP CI/net.tcp.service[http,{$JENKINS.HOST},{$JENKINS.PORT}],5m)=0
+        name: Jenkins ไม่ตอบมา 5 นาที — deploy ไม่ได้ (ระบบยังใช้งานได้)
+        priority: AVERAGE
+        description: 'บน erp-ci-01: docker ps · docker logs jenkins-jenkins-1'
+    - uuid: 8ba2064f995d412cbe1a98642f3872ef
+      name: 'dockerd: จำนวน process'
+      key: proc.num[dockerd]
+      delay: 1m
+      tags:
+      - tag: component
+        value: docker
+      triggers:
+      - uuid: 214f96e91f28427d97a18f01e1303888
+        expression: last(/ERP CI/proc.num[dockerd])=0
+        name: Docker ไม่ทำงานบน {HOST.NAME}
+        priority: AVERAGE
+    macros:
+    - macro: '{$JENKINS.HOST}'
+      value: 192.168.88.131
+    - macro: '{$JENKINS.PORT}'
+      value: '8110'

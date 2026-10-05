@@ -179,3 +179,17 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 1. บนเครื่อง: pull repo → `sudo scripts/50-zabbix.sh` (ติดตั้ง cron `/etc/cron.d/erp-zbx-db` เก็บค่าทุกนาทีลง `/var/lib/erp-zbx/db.env` — ไฟล์นี้ไม่มีรหัสผ่าน)
 2. Zabbix: Import `monitoring/zabbix/template-erp-data.yaml` → host `erp-db-01` (192.168.88.12:10050) ใส่ `ERP Data`
 3. ดูค่าทั้งหมดบนเครื่อง: `cat /var/lib/erp-zbx/db.env`
+
+### CI (erp-ci-01) และการตรวจจากมุมผู้ใช้
+
+- Import `template-erp-ci.yaml` → host `erp-ci-01` (192.168.88.131:10050) ใส่ `ERP CI` · ไม่ต้องรันสคริปต์บนเครื่อง
+- Import `template-erp-web.yaml` → สร้าง host `erp-vip` **ไม่ต้องมี interface** ใส่ `ERP Web` (Zabbix server ยิง https://192.168.88.100 พร้อม Host header ทุกนาที)
+
+### แจ้งเตือนเข้า Slack
+
+1. Slack: สร้าง channel เช่น `#erp-alert` แล้ว `/invite @<bot>` (ใช้ bot ตัวเดียวกับ Jenkins ได้ ต้องมี scope `chat:write`)
+2. Zabbix: Alerts (6.0: Administration) → Media types → **Slack** → ใส่ `bot_token` → Enabled
+3. Administration → General → Macros: `{$ZABBIX.URL}` = URL หน้าเว็บ Zabbix (ลิงก์ในข้อความ)
+4. Users → Admin (หรือ user ของทีม) → Media → Add: Type Slack, Send to `#erp-alert`, Use if severity: Average, High, Disaster
+5. Alerts → Actions → Trigger actions → Create: เงื่อนไข Host group = `ERP-HA` และ Trigger severity ≥ Average · Operations ส่งหา user group ผ่าน Slack · เปิด Recovery operations
+6. ทดสอบ: Media types → Slack → Test
