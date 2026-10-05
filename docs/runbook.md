@@ -193,3 +193,17 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 4. Users → Admin (หรือ user ของทีม) → Media → Add: Type Slack, Send to `#erp-alert`, Use if severity: Average, High, Disaster
 5. Alerts → Actions → Trigger actions → Create: เงื่อนไข Host group = `ERP-HA` และ Trigger severity ≥ Average · Operations ส่งหา user group ผ่าน Slack · เปิด Recovery operations
 6. ทดสอบ: Media types → Slack → Test
+
+### Map และ Dashboard "ERP HA"
+
+ใช้รูป diagram เป็นพื้นหลัง วางจุดสถานะที่มุมการ์ดของแต่ละเครื่อง (เขียว = ปกติ, แดง = มี problem, เทา = ปิด / maintenance)
+
+1. Zabbix: User settings → **API tokens** → Create (user ที่เป็น Super admin) → copy token
+2. บนเครื่องที่มี repo และเข้าหน้า Zabbix ได้ (เช่น erp-app-01):
+   ```bash
+   cd /opt/erp-infra && sudo git pull
+   export ZBX_URL=http://192.168.88.21/zabbix   # URL ที่ใช้เปิดหน้าเว็บ Zabbix
+   read -s ZBX_TOKEN && export ZBX_TOKEN        # วาง token แล้ว Enter
+   python3 monitoring/zabbix/make-map.py
+   ```
+3. เปิด Dashboards → **ERP HA** · แก้ diagram แล้ว: render `docs/infra-diagram.svg` เป็น `monitoring/zabbix/map/erp-ha-background.png` (1240×680) แล้วรัน script ซ้ำ
