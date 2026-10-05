@@ -8,7 +8,7 @@ global_defs {
 
 vrrp_script chk_nginx {
     script "/usr/bin/curl -fsS -o /dev/null --max-time 1 http://127.0.0.1:8081/healthz"
-    interval 2
+    interval 1          # เช็กทุก 1 วินาที ล้ม 2 ครั้งติด = ย้าย VIP (ทดสอบจริงที่ interval 2 ใช้เวลา ~6 วินาที)
     fall 2
     rise 2
     weight -30          # gw-1: 110 → 80 (ต่ำกว่า gw-2 = 100) VIP จึงย้าย
