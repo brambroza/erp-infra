@@ -3,7 +3,7 @@
 Infrastructure as code ของระบบ ERP (nisolution.co.th) แบบ High Availability
 
 <p align="center">
-  <img src="docs/infra-diagram.svg" alt="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 MASTER / erp-gw-02 BACKUP) → Swarm erp-app-01 / erp-app-02 → erp-db-01; GitHub Actions → Docker Hub; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01" width="100%">
+  <img src="docs/infra-diagram.svg" alt="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 MASTER / erp-gw-02 BACKUP) → Swarm erp-app-01 / erp-app-02 → erp-db-01; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01" width="100%">
 </p>
 
 **Flow แบบย่อ**

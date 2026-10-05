@@ -1,176 +1,214 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1200 760" width="1200" height="760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 / erp-gw-02) → Swarm erp-app-01 / erp-app-02 → erp-db-01; GitHub Actions → Docker Hub; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01">
-  <title>ERP infra diagram</title>
-  <style>
-:root, svg {
-  --bg:#f2f4f6; --card:#ffffff; --fg:#15212c; --muted:#5b6976; --line:#c9d2db;
-  --blue:#1f5fbf; --blue-soft:#e3ecfa; --green:#0d7a5c; --amber:#9a5b00; --violet:#6a4bb8; --grey:#7a8590;
-}
+<svg viewBox="0 0 1240 680" width="1240" height="680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 / erp-gw-02) → Docker Swarm erp-app-01 / erp-app-02 → erp-db-01; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01">
+<title>ERP infra diagram</title>
+<style>
+:root, svg { --bg:#FBFCFD; --card:#FFFFFF; --ink:#17212B; --muted:#5E6B78; --rule:#D5DCE3; --edge:#3451B2;--edge-lane:#E9EEFB;--edge-head:#F3F6FD;--app:#0E7C66;--app-lane:#E5F3EF;--app-head:#F1F9F6;--data:#A86412;--data-lane:#F8EEDF;--data-head:#FCF6EC;--ci:#6B45C2;--ci-lane:#EEE9FA;--ci-head:#F6F3FD;--old:#7D8894;--old-lane:#EEF0F2;--old-head:#F6F7F8; }
 @media (prefers-color-scheme: dark) {
-  :root, svg {
-    --bg:#0d1117; --card:#161b22; --fg:#e2e8ee; --muted:#95a3b0; --line:#30363d;
-    --blue:#78a9f2; --blue-soft:#1a2a40; --green:#4fc9a1; --amber:#e8b25a; --violet:#b59cf0; --grey:#8b949e;
-  }
+  :root, svg { --bg:#0E1318; --card:#161C23; --ink:#E4EAF0; --muted:#97A4B1; --rule:#2C3540; --edge:#8FA8F5;--edge-lane:#151D33;--edge-head:#1A2440;--app:#4CC9A8;--app-lane:#10231F;--app-head:#143029;--data:#E9AE5C;--data-lane:#271D10;--data-head:#332513;--ci:#B39BF2;--ci-lane:#1E1830;--ci-head:#261E3D;--old:#8E99A6;--old-lane:#181C21;--old-head:#1E232A; }
 }
-.bg   { fill: var(--bg); }
-.box  { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
-.box.gw   { stroke: var(--blue);  stroke-width: 2; }
-.box.app  { stroke: var(--green); stroke-width: 2; }
-.box.data { stroke: var(--amber); stroke-width: 2; }
-.box.ci   { stroke: var(--violet); stroke-width: 2; }
-.box.old  { stroke: var(--grey); stroke-width: 1.5; stroke-dasharray: 4 3; }
-.zone { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 5; }
-.vip  { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.5; }
-text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma, "Segoe UI", sans-serif; }
-.t1, .lbl, .tv, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", monospace; }
-.t1  { fill: var(--muted); font-size: 11px; }
-.t2  { fill: var(--fg); font-size: 14px; font-weight: 600; }
-.t3  { fill: var(--fg); font-size: 12px; }
-.mono { fill: var(--fg); font-size: 11.5px; white-space: pre; }
-.tv  { fill: var(--blue); font-size: 12px; font-weight: 600; }
-.lbl { fill: var(--muted); font-size: 10.5px; white-space: pre; }
-.ar  { stroke: var(--muted); stroke-width: 1.6; fill: none; }
-.ar.b { stroke: var(--blue); }
-.ar.g { stroke: var(--green); }
-.ar.a { stroke: var(--amber); }
-.ar.v { stroke: var(--violet); }
-.dash { stroke: var(--blue); stroke-width: 1.4; stroke-dasharray: 4 4; fill: none; }
-.dash.v { stroke: var(--violet); }
-.dash.m { stroke: var(--muted); }
-.head { fill: var(--muted); }
-.head.b { fill: var(--blue); }
-.head.g { fill: var(--green); }
-.head.a { fill: var(--amber); }
-.head.v { fill: var(--violet); }
-  </style>
-  <rect class="bg" x="0" y="0" width="1200" height="760" rx="12"/>
-  <defs>
-    <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head b" d="M0 0L10 5L0 10z"/></marker>
-    <marker id="mg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head g" d="M0 0L10 5L0 10z"/></marker>
-    <marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head a" d="M0 0L10 5L0 10z"/></marker>
-    <marker id="mv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head v" d="M0 0L10 5L0 10z"/></marker>
-    <marker id="mm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0L10 5L0 10z"/></marker>
-  </defs>
-
-  <!-- ===== ฝั่งผู้ใช้ ===== -->
-  <text class="t1" x="24" y="40">INTERNET</text>
-  <rect class="box" x="24" y="120" width="156" height="56" rx="6"/>
-  <text class="t2" x="102" y="145" text-anchor="middle">ผู้ใช้ </text>
-  <text class="t1" x="102" y="164" text-anchor="middle">HTTPS :443</text>
-
-  <rect class="box" x="24" y="216" width="156" height="56" rx="6"/>
-  <text class="t2" x="102" y="241" text-anchor="middle">Cloudflare</text>
-  <text class="t1" x="102" y="260" text-anchor="middle">proxied · Full (strict)</text>
-
-  <rect class="box" x="24" y="312" width="156" height="70" rx="6"/>
-  <text class="t2" x="102" y="337" text-anchor="middle">Router</text>
-  <text class="t3" x="102" y="356" text-anchor="middle">port forward 80/443</text>
-  <text class="t1" x="102" y="372" text-anchor="middle">→ VIP 192.168.88.100</text>
-
-  <path class="ar" d="M102 176V214" marker-end="url(#mm)"/>
-  <path class="ar" d="M102 272V310" marker-end="url(#mm)"/>
-  <path class="ar b" d="M180 347H200V156H226" marker-end="url(#mb)"/>
-
-  <!-- ===== Gateway ===== -->
-  <rect class="zone" x="212" y="96" width="210" height="374" rx="10"/>
-  <text class="t1" x="224" y="114">GATEWAY · Nginx + keepalived</text>
-  <rect class="vip" x="228" y="142" width="178" height="28" rx="14"/>
-  <text class="tv" x="317" y="161" text-anchor="middle">VIP 192.168.88.100</text>
-
-  <rect class="box gw" x="226" y="190" width="182" height="96" rx="6"/>
-  <text class="t1" x="238" y="209">erp-gw-01 · .101</text>
-  <text class="t2" x="238" y="232">MASTER (priority 110)</text>
-  <text class="t3" x="238" y="252">ถือ VIP ตามปกติ</text>
-  <text class="t1" x="238" y="272">wildcard cert *.nisolution</text>
-
-  <rect class="box gw" x="226" y="352" width="182" height="96" rx="6"/>
-  <text class="t1" x="238" y="371">erp-gw-02 · .102</text>
-  <text class="t2" x="238" y="394">BACKUP (priority 100)</text>
-  <text class="t3" x="238" y="414">รับ VIP เมื่อ gw-01 ล่ม</text>
-  <text class="t1" x="238" y="434">config เหมือน gw-01 ทุกไฟล์</text>
-
-  <path class="dash" d="M317 286V352"/>
-  <text class="lbl" x="325" y="314">VRRP unicast</text>
-  <text class="lbl" x="325" y="328">เช็ก nginx ทุก 1 วิ</text>
-
-  <!-- ===== Swarm ===== -->
-  <rect class="zone" x="452" y="24" width="316" height="510" rx="10"/>
-  <text class="t1" x="464" y="42">CLUSTER : DOCKER SWARM  </text>
-
-  <rect class="box app" x="466" y="56" width="288" height="218" rx="6"/>
-  <text class="t1" x="478" y="75">erp-app-01 · 192.168.88.111 · manager</text>
-  <text class="mono" x="478" y="102">erpapp    :8284 ingress   ×1</text>
-  <text class="mono" x="478" y="122">erpapi    :6334 ingress   ×1</text>
-  <text class="mono" x="478" y="140">          :6344 host (hubs)</text>
-  <text class="mono" x="478" y="160">chat-api  :6335 host      ×1</text>
-  <text class="mono" x="478" y="180">ticker    ×1 ทั้ง cluster</text>
-  <text class="lbl" x="478" y="198">          (ตอนนี้ 0 จนกว่าจะ cutover)</text>
-  <text class="t1" x="478" y="226">/opt/erp-infra  </text> 
-  <text class="t1" x="478" y="262">Jenkins ssh เข้าเครื่องนี้เท่านั้น</text>
-
-  <rect class="box app" x="466" y="300" width="288" height="218" rx="6"/>
-  <text class="t1" x="478" y="319">erp-app-02 · 192.168.88.112 · worker</text>
-  <text class="mono" x="478" y="346">erpapp    :8284 ingress   ×1</text>
-  <text class="mono" x="478" y="366">erpapi    :6334 ingress   ×1</text>
-  <text class="mono" x="478" y="384">          :6344 host (hubs)</text>
-  <text class="mono" x="478" y="404">chat-api  :6335 host      ×1</text>
-  <text class="mono" x="478" y="424">ticker    ย้ายมาเองถ้า 01 ล่ม</text>
-  <text class="t1" x="478" y="460">ไม่มีไฟล์ config ของ stack</text>
-  <text class="t1" x="478" y="478">Swarm ส่งงานมาให้จาก manager</text>
-  <text class="t1" x="478" y="496">vmxnet3: ปิด tx checksum (overlay)</text>
-
-  <path class="ar g" d="M408 226H436V160H464" marker-end="url(#mg)"/>
-  <path class="ar g" d="M436 226V404H464" marker-end="url(#mg)"/>
-  <text class="t1" x="24" y="420">Nginx → แอป</text>
-  <text class="lbl" x="24" y="438">REST = least_conn</text>
-  <text class="lbl" x="24" y="454">hubs / socket = sticky ตาม IP</text>
-  <text class="lbl" x="24" y="470">เครื่องล่ม = ตัดออกเอง</text>
-
-  <!-- ===== Data ===== -->
-  <rect class="box data" x="808" y="56" width="368" height="262" rx="6"/>
-  <text class="t1" x="822" y="75">erp-db-01 · 192.168.88.12 · docker compose "data"</text>
-  <text class="mono" x="822" y="104">SQL Server 2022 Express  :1433</text>
-  <text class="lbl" x="822" y="120">  GoAlongDatabase · แอปใช้ login erp_app</text>
-  <text class="mono" x="822" y="146">Redis 7.4                :6379</text>
-  <text class="lbl" x="822" y="162">  SignalR backplane · cron lock · dedupe LINE</text>
-  <text class="mono" x="822" y="188">RabbitMQ 4.0             :5672</text>
-  <text class="lbl" x="822" y="204">  log_queue · คิว webhook (จำกัด 10,000)</text>
-  <text class="mono" x="822" y="230">NFS erp-files            :2049</text>
-  <text class="lbl" x="822" y="246">  ไฟล์ upload ของ erpapi + chat-api (uid 5678)</text>
-  <text class="t1" x="822" y="276">/srv = ดิสก์ iSCSI จาก NAS</text>
-  <text class="t1" x="822" y="294">backup DB ทุกคืน 01:00 เก็บ 7 วัน</text>
-
-  <path class="ar a" d="M754 150H780V170H806" marker-end="url(#ma)"/>
-  <path class="ar a" d="M754 410H780V200H806" marker-end="url(#ma)"/>
-  <text class="lbl" x="786" y="334">SQL / Redis</text>
-  <text class="lbl" x="786" y="348">Rabbit / NFS</text>
-
-  <!-- ===== ระบบเดิม ===== -->
-  <rect class="box old" x="808" y="378" width="368" height="92" rx="6"/>
-  <text class="t1" x="822" y="397">เครื่องเดิม · 192.168.88.11 (ยังเป็น production)</text>
-  <text class="t3" x="822" y="420">app.nisolution :3030 · n8n :5678 · :10053</text>
-  <text class="t1" x="822" y="440">Zabbix · 192.168.88.21</text>
-  <text class="lbl" x="822" y="458">gateway ส่ง app / n8n / zabbix มาที่นี่ (ไม่ย้าย)</text>
-
-
-  <!-- ===== CI/CD ===== -->
-  <text class="t1" x="24" y="592">CI/CD</text>
-   
-
-  <rect class="box ci" x="808" y="604" width="368" height="72" rx="6"/>
-  <text class="t1" x="822" y="623">erp-ci-01 · 192.168.88.131 (เครื่องใหม่ แยกจากของเดิม)</text>
-  <text class="t2" x="822" y="646">Jenkins :8110</text>
-  <text class="t1" x="822" y="664">deploy-erpapp · deploy-erpapi · deploy-chat-api</text>
-
-  <path class="ar v" d="M192 640H224" marker-end="url(#mv)"/>
-  <path class="ar v" d="M414 640H450" marker-end="url(#mv)"/>
-  <path class="dash v" d="M562 604V538" marker-end="url(#mv)"/>
-  <text class="lbl" x="570" y="590">ทุกโหนด pull image</text>
-  <path class="ar v" d="M900 604V584H700V538" marker-end="url(#mv)"/>
-  <text class="lbl" x="708" y="556">ssh deploy@erp-app-01</text>
-  <text class="lbl" x="708" y="572">ปัก latest@sha256 → stack deploy</text>
-
-  <!-- legend -->
-  <text class="lbl" x="24" y="712">เส้นทึบ = request / งาน · เส้นประ = สัญญาณ heartbeat หรือ pull · กรอบประ = ระบบเดิมที่ยังไม่ย้าย</text>
-  <text class="lbl" x="24" y="730">STACK_MODE=test ใน versions.env = บล็อก LINE / Expo push / Facebook / Gmail ออกจาก erpapi และ chat-api จนกว่าจะ cutover</text>
+text { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma, "Segoe UI", sans-serif; fill: var(--ink); }
+.ip, .chipt, .port, .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", monospace; }
+.bg { fill: var(--bg); }
+.card { fill: var(--card); stroke-width: 1.4; }
+.card.old { stroke-dasharray: 5 4; }
+.cardsep { stroke-width: 1; stroke-opacity: .35; }
+.lanet { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.host { font-size: 15px; font-weight: 700; }
+.ip { font-size: 12.5px; fill: var(--muted); }
+.badget { font-size: 10.5px; font-weight: 700; fill: var(--card); }
+.svc { font-size: 13px; font-weight: 600; }
+.note { font-size: 11.5px; fill: var(--muted); }
+.mono { font-size: 11.5px; fill: var(--muted); }
+.chip { stroke-width: 1; }
+.chipt { font-size: 10.5px; font-weight: 600; }
+.big { font-size: 15px; font-weight: 700; }
+.vip { fill: var(--edge); }
+.vipt { font-size: 13px; font-weight: 700; fill: var(--card); }
+.ar { fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linejoin: round; }
+.ar.dash { stroke-dasharray: 5 4; }
+.hb { fill: none; stroke: var(--edge); stroke-width: 1.5; stroke-dasharray: 2 4; stroke-linecap: round; }
+.mk { fill: var(--muted); }
+.lab { font-size: 11px; fill: var(--muted); }
+.card.edge{stroke:var(--edge)} .cardhead.edge{fill:var(--edge-head)} .cardsep.edge{stroke:var(--edge)} .lane.edge{fill:var(--edge-lane)} .lanet.edge{fill:var(--edge)} .chip.edge{fill:var(--edge-lane);stroke:var(--edge)} .chipt.edge{fill:var(--edge)} .badge.edge{fill:var(--edge)} .ar.edge{stroke:var(--edge)} .mk.edge{fill:var(--edge)}
+.card.app{stroke:var(--app)} .cardhead.app{fill:var(--app-head)} .cardsep.app{stroke:var(--app)} .lane.app{fill:var(--app-lane)} .lanet.app{fill:var(--app)} .chip.app{fill:var(--app-lane);stroke:var(--app)} .chipt.app{fill:var(--app)} .badge.app{fill:var(--app)} .ar.app{stroke:var(--app)} .mk.app{fill:var(--app)}
+.card.data{stroke:var(--data)} .cardhead.data{fill:var(--data-head)} .cardsep.data{stroke:var(--data)} .lane.data{fill:var(--data-lane)} .lanet.data{fill:var(--data)} .chip.data{fill:var(--data-lane);stroke:var(--data)} .chipt.data{fill:var(--data)} .badge.data{fill:var(--data)} .ar.data{stroke:var(--data)} .mk.data{fill:var(--data)}
+.card.ci{stroke:var(--ci)} .cardhead.ci{fill:var(--ci-head)} .cardsep.ci{stroke:var(--ci)} .lane.ci{fill:var(--ci-lane)} .lanet.ci{fill:var(--ci)} .chip.ci{fill:var(--ci-lane);stroke:var(--ci)} .chipt.ci{fill:var(--ci)} .badge.ci{fill:var(--ci)} .ar.ci{stroke:var(--ci)} .mk.ci{fill:var(--ci)}
+.card.old{stroke:var(--old)} .cardhead.old{fill:var(--old-head)} .cardsep.old{stroke:var(--old)} .lane.old{fill:var(--old-lane)} .lanet.old{fill:var(--old)} .chip.old{fill:var(--old-lane);stroke:var(--old)} .chipt.old{fill:var(--old)} .badge.old{fill:var(--old)} .ar.old{stroke:var(--old)} .mk.old{fill:var(--old)}
+</style>
+<defs>
+<marker id="m-edge" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk edge" d="M0 1L9 5L0 9z"/></marker>
+<marker id="m-app" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk app" d="M0 1L9 5L0 9z"/></marker>
+<marker id="m-data" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk data" d="M0 1L9 5L0 9z"/></marker>
+<marker id="m-ci" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk ci" d="M0 1L9 5L0 9z"/></marker>
+<marker id="m-old" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk old" d="M0 1L9 5L0 9z"/></marker>
+<marker id="m-mut" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 1L9 5L0 9z"/></marker>
+</defs>
+<rect class="bg" width="1240" height="680" rx="14"/>
+<rect class="lane old" x="16" y="20" width="184" height="430" rx="16"/>
+<text class="lanet old" x="32" y="44">INTERNET</text>
+<rect class="lane edge" x="214" y="20" width="236" height="516" rx="16"/>
+<text class="lanet edge" x="230" y="44">GATEWAY</text>
+<rect class="lane app" x="464" y="20" width="356" height="600" rx="16"/>
+<text class="lanet app" x="480" y="44">CLUSTER : DOCKER SWARM</text>
+<rect class="lane data" x="834" y="20" width="390" height="488" rx="16"/>
+<text class="lanet data" x="850" y="44">DATA</text>
+<rect class="lane ci" x="834" y="522" width="390" height="142" rx="16"/>
+<text class="lanet ci" x="850" y="546">CI/CD</text>
+<rect class="card old" style="stroke-dasharray:none" x="32" y="72" width="152" height="62" rx="10"/>
+<text class="big" x="108.0" y="98" text-anchor="middle">ผู้ใช้</text>
+<text class="note" x="108.0" y="118" text-anchor="middle">HTTPS 443</text>
+<rect class="card old" style="stroke-dasharray:none" x="32" y="176" width="152" height="62" rx="10"/>
+<text class="big" x="108.0" y="202" text-anchor="middle">Cloudflare</text>
+<text class="note" x="108.0" y="222" text-anchor="middle">proxied, SSL Full (strict)</text>
+<rect class="card old" style="stroke-dasharray:none" x="32" y="280" width="152" height="80" rx="10"/>
+<text class="big" x="108.0" y="306" text-anchor="middle">Router</text>
+<text class="note" x="108.0" y="326" text-anchor="middle">port forward 80/443</text>
+<text class="note" x="108.0" y="343" text-anchor="middle">→ 192.168.88.100</text>
+<path class="ar" d="M108 134V174" marker-end="url(#m-mut)"/>
+<path class="ar" d="M108 238V278" marker-end="url(#m-mut)"/>
+<rect class="vip" x="236" y="54" width="192" height="32" rx="16"/>
+<text class="vipt" x="332" y="75" text-anchor="middle">VIP 192.168.88.100</text>
+<path class="ar edge" d="M184 320H202V70H234" marker-end="url(#m-edge)"/>
+<rect class="card edge" x="232" y="112" width="200" height="128" rx="10"/>
+<path class="cardhead edge" d="M233 150V122a9 9 0 0 1 9-9H422a9 9 0 0 1 9 9V150Z"/>
+<line class="cardsep edge" x1="232" y1="150" x2="432" y2="150"/>
+<text class="host" x="246" y="137">erp-gw-01</text>
+<text class="ip" x="418" y="137" text-anchor="end">.101</text>
+<rect class="badge edge" x="324" y="124" width="52" height="18" rx="4"/>
+<text class="badget edge" x="349.8" y="137" text-anchor="middle">MASTER</text>
+<text class="svc" x="246" y="174">nginx + keepalived</text>
+<text class="note" x="246" y="194">priority 110</text>
+<text class="note" x="246" y="212">ถือ VIP ตามปกติ</text>
+<text class="note" x="246" y="230">wildcard cert *.nisolution</text>
+<rect class="card edge" x="232" y="330" width="200" height="128" rx="10"/>
+<path class="cardhead edge" d="M233 368V340a9 9 0 0 1 9-9H422a9 9 0 0 1 9 9V368Z"/>
+<line class="cardsep edge" x1="232" y1="368" x2="432" y2="368"/>
+<text class="host" x="246" y="355">erp-gw-02</text>
+<text class="ip" x="418" y="355" text-anchor="end">.102</text>
+<rect class="badge edge" x="324" y="342" width="52" height="18" rx="4"/>
+<text class="badget edge" x="349.8" y="355" text-anchor="middle">BACKUP</text>
+<text class="svc" x="246" y="392">nginx + keepalived</text>
+<text class="note" x="246" y="412">priority 100</text>
+<text class="note" x="246" y="430">รับ VIP เมื่อ gw-01 ล่ม</text>
+<text class="note" x="246" y="448">config เหมือน gw-01 ทุกไฟล์</text>
+<path class="ar edge" d="M332 86V110" marker-end="url(#m-edge)"/>
+<path class="hb" d="M332 240V330"/>
+<text class="lab" x="342" y="280">VRRP unicast</text>
+<text class="lab" x="342" y="296">เช็ก nginx ทุก 1 วินาที</text>
+<text class="lab" x="232" y="488">REST: least_conn</text>
+<text class="lab" x="232" y="504">hubs, socket: sticky ตาม IP ผู้ใช้</text>
+<text class="lab" x="232" y="520">เครื่องแอปล่ม nginx ตัดออกเอง</text>
+<rect class="card app" x="480" y="56" width="324" height="248" rx="10"/>
+<path class="cardhead app" d="M481 94V66a9 9 0 0 1 9-9H794a9 9 0 0 1 9 9V94Z"/>
+<line class="cardsep app" x1="480" y1="94" x2="804" y2="94"/>
+<text class="host" x="494" y="81">erp-app-01</text>
+<text class="ip" x="790" y="81" text-anchor="end">192.168.88.111</text>
+<rect class="badge app" x="590" y="68" width="58" height="18" rx="4"/>
+<text class="badget app" x="619.1" y="81" text-anchor="middle">manager</text>
+<text class="svc" x="494" y="122">erpapp</text>
+<rect class="chip app" x="568" y="108" width="91" height="18" rx="9"/>
+<text class="chipt app" x="613.4" y="121" text-anchor="middle">8284 ingress</text>
+<text class="mono" x="790" y="122" text-anchor="end">×1</text>
+<text class="svc" x="494" y="152">erpapi</text>
+<rect class="chip app" x="568" y="138" width="91" height="18" rx="9"/>
+<text class="chipt app" x="613.4" y="151" text-anchor="middle">6334 ingress</text>
+<rect class="chip app" x="664.8" y="138" width="70" height="18" rx="9"/>
+<text class="chipt app" x="699.8499999999999" y="151" text-anchor="middle">6344 hubs</text>
+<text class="mono" x="790" y="152" text-anchor="end">×1</text>
+<text class="svc" x="494" y="182">chat-api</text>
+<rect class="chip app" x="568" y="168" width="70" height="18" rx="9"/>
+<text class="chipt app" x="603.05" y="181" text-anchor="middle">6335 host</text>
+<text class="mono" x="790" y="182" text-anchor="end">×1</text>
+<text class="svc" x="494" y="212">ticker</text>
+<text class="note" x="568" y="212">×1 ทั้ง cluster</text>
+<text class="note" x="568" y="228">(ตอนนี้ 0 จนกว่าจะ cutover)</text>
+<line class="cardsep app" x1="494" y1="242" x2="790" y2="242"/>
+<text class="note" x="494" y="264">/opt/erp-infra</text>
+<text class="note" x="494" y="282">Jenkins ssh เข้าเครื่องนี้เท่านั้น</text>
+<rect class="card app" x="480" y="330" width="324" height="248" rx="10"/>
+<path class="cardhead app" d="M481 368V340a9 9 0 0 1 9-9H794a9 9 0 0 1 9 9V368Z"/>
+<line class="cardsep app" x1="480" y1="368" x2="804" y2="368"/>
+<text class="host" x="494" y="355">erp-app-02</text>
+<text class="ip" x="790" y="355" text-anchor="end">192.168.88.112</text>
+<rect class="badge app" x="590" y="342" width="52" height="18" rx="4"/>
+<text class="badget app" x="615.8" y="355" text-anchor="middle">worker</text>
+<text class="svc" x="494" y="396">erpapp</text>
+<rect class="chip app" x="568" y="382" width="91" height="18" rx="9"/>
+<text class="chipt app" x="613.4" y="395" text-anchor="middle">8284 ingress</text>
+<text class="mono" x="790" y="396" text-anchor="end">×1</text>
+<text class="svc" x="494" y="426">erpapi</text>
+<rect class="chip app" x="568" y="412" width="91" height="18" rx="9"/>
+<text class="chipt app" x="613.4" y="425" text-anchor="middle">6334 ingress</text>
+<rect class="chip app" x="664.8" y="412" width="70" height="18" rx="9"/>
+<text class="chipt app" x="699.8499999999999" y="425" text-anchor="middle">6344 hubs</text>
+<text class="mono" x="790" y="426" text-anchor="end">×1</text>
+<text class="svc" x="494" y="456">chat-api</text>
+<rect class="chip app" x="568" y="442" width="70" height="18" rx="9"/>
+<text class="chipt app" x="603.05" y="455" text-anchor="middle">6335 host</text>
+<text class="mono" x="790" y="456" text-anchor="end">×1</text>
+<text class="svc" x="494" y="486">ticker</text>
+<text class="note" x="568" y="486">ย้ายมาเองถ้า erp-app-01 ล่ม</text>
+<line class="cardsep app" x1="494" y1="516" x2="790" y2="516"/>
+<text class="note" x="494" y="538">Swarm ส่งงานมาให้จาก manager</text>
+<text class="note" x="494" y="556">vmxnet3: ปิด tx checksum (overlay)</text>
+<path class="ar app" d="M432 176H456V176H478" marker-end="url(#m-app)"/>
+<path class="ar app" d="M456 176V450H478" marker-end="url(#m-app)"/>
+<path class="ar app dash" d="M432 394H456"/>
+<rect class="card data" x="850" y="56" width="358" height="290" rx="10"/>
+<path class="cardhead data" d="M851 94V66a9 9 0 0 1 9-9H1198a9 9 0 0 1 9 9V94Z"/>
+<line class="cardsep data" x1="850" y1="94" x2="1208" y2="94"/>
+<text class="host" x="864" y="81">erp-db-01</text>
+<text class="ip" x="1194" y="81" text-anchor="end">192.168.88.12</text>
+<rect class="badge data" x="951" y="68" width="91" height="18" rx="4"/>
+<text class="badget data" x="997.0" y="81" text-anchor="middle">compose data</text>
+<text class="svc" x="864" y="122">SQL Server 2022 Express</text>
+<rect class="chip data" x="1158.4" y="108" width="36" height="18" rx="9"/>
+<text class="chipt data" x="1176.2" y="121" text-anchor="middle">1433</text>
+<text class="note" x="864" y="140">GoAlongDatabase, แอปใช้ login erp_app</text>
+<text class="svc" x="864" y="168">Redis 7.4</text>
+<rect class="chip data" x="1158.4" y="154" width="36" height="18" rx="9"/>
+<text class="chipt data" x="1176.2" y="167" text-anchor="middle">6379</text>
+<text class="note" x="864" y="186">SignalR backplane, cron lock, dedupe LINE</text>
+<text class="svc" x="864" y="214">RabbitMQ 4.0</text>
+<rect class="chip data" x="1158.4" y="200" width="36" height="18" rx="9"/>
+<text class="chipt data" x="1176.2" y="213" text-anchor="middle">5672</text>
+<text class="note" x="864" y="232">log_queue, คิว webhook (จำกัด 10,000)</text>
+<text class="svc" x="864" y="260">NFS erp-files</text>
+<rect class="chip data" x="1158.4" y="246" width="36" height="18" rx="9"/>
+<text class="chipt data" x="1176.2" y="259" text-anchor="middle">2049</text>
+<text class="note" x="864" y="278">ไฟล์ upload ของ erpapi + chat-api (uid 5678)</text>
+<line class="cardsep data" x1="864" y1="298" x2="1194" y2="298"/>
+<text class="note" x="864" y="320">/srv = ดิสก์ iSCSI จาก NAS</text>
+<text class="note" x="864" y="338">backup DB ทุกคืน 01:00 เก็บ 7 วัน</text>
+<path class="ar data" d="M804 200H826V180H848" marker-end="url(#m-data)"/>
+<path class="ar data" d="M804 470H826V230H848" marker-end="url(#m-data)"/>
+<rect class="card old old" x="850" y="372" width="358" height="120" rx="10"/>
+<path class="cardhead old" d="M851 410V382a9 9 0 0 1 9-9H1198a9 9 0 0 1 9 9V410Z"/>
+<line class="cardsep old" x1="850" y1="410" x2="1208" y2="410"/>
+<text class="host" x="864" y="397">เครื่องเดิม</text>
+<text class="ip" x="1194" y="397" text-anchor="end">192.168.88.11</text>
+<rect class="badge old" x="946" y="384" width="78" height="18" rx="4"/>
+<text class="badget old" x="985.0" y="397" text-anchor="middle">production</text>
+<text class="svc" x="864" y="434">app.nisolution 3030, n8n 5678, 10053</text>
+<text class="note" x="864" y="454">Zabbix 192.168.88.21</text>
+<text class="note" x="864" y="472">gateway ส่ง app / n8n / zabbix มาที่นี่ (ไม่ย้าย)</text>
+<rect class="card ci" x="850" y="556" width="358" height="96" rx="10"/>
+<path class="cardhead ci" d="M851 594V566a9 9 0 0 1 9-9H1198a9 9 0 0 1 9 9V594Z"/>
+<line class="cardsep ci" x1="850" y1="594" x2="1208" y2="594"/>
+<text class="host" x="864" y="581">erp-ci-01</text>
+<text class="ip" x="1194" y="581" text-anchor="end">192.168.88.131</text>
+<rect class="badge ci" x="951" y="568" width="91" height="18" rx="4"/>
+<text class="badget ci" x="997.0" y="581" text-anchor="middle">Jenkins 8110</text>
+<text class="svc" x="864" y="616">deploy-erpapp, deploy-erpapi, deploy-chat-api</text>
+<text class="note" x="864" y="636">เครื่องใหม่ แยกจาก Jenkins เดิม</text>
+<path class="ar ci" d="M850 628H642V582" marker-end="url(#m-ci)"/>
+<text class="lab" x="652" y="600">ssh deploy@erp-app-01</text>
+<text class="lab" x="652" y="615">แก้ tag แล้ว stack deploy</text>
+<path class="ar" d="M32 576H66" marker-end="url(#m-mut)"/>
+<text class="lab" x="76" y="580">request / งาน</text>
+<path class="hb" d="M32 598H66"/>
+<text class="lab" x="76" y="602">heartbeat ระหว่าง gateway</text>
+<rect class="card old" x="32" y="614" width="34" height="16" rx="4"/>
+<text class="lab" x="76" y="626">ระบบเดิมที่ยังไม่ย้าย</text>
+<text class="lab" x="32" y="654">STACK_MODE=test: บล็อก LINE / push / Gmail ออก จนกว่าจะ cutover</text>
 </svg>
