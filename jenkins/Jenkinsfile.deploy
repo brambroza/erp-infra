@@ -1,13 +1,21 @@
-// Job: erp-deploy  — deploy image ที่ push แล้วเข้า Swarm แบบ rolling
-// Credential ที่ต้องมี: swarm-manager-ssh (SSH private key ของ user deploy บน erp-app-01)
+// deploy image เข้า Swarm แบบ rolling (erp-app-01 = Swarm manager)
+// Credential: swarm-manager-ssh (SSH key ของ user deploy บน erp-app-01)
+//
+// ใช้ได้ 2 แบบ ด้วย Jenkinsfile เดียวกัน:
+//   - job ชื่อ deploy-erpapi / deploy-erpapp / deploy-chat-api / deploy-ticker
+//     → ล็อก service ตามชื่อ job (แยก job ต่อแอป เหมือน Jenkins เครื่องเดิม)
+//   - job ชื่ออื่น (เช่น erp-deploy) → เลือก SERVICE จาก parameter
+// TAG ว่าง = ใช้ :latest ล่าสุดบน Docker Hub แล้วปักเป็น digest (latest@sha256:...) ให้ rollback ได้
 pipeline {
   agent any
   parameters {
-    choice(name: 'SERVICE', choices: ['erpapi', 'erpapp', 'chat-api', 'ticker'], description: 'service ที่จะ deploy')
-    string(name: 'TAG', defaultValue: '', description: 'image tag ที่ push แล้ว เช่น b152')
+    choice(name: 'SERVICE', choices: ['erpapi', 'erpapp', 'chat-api', 'ticker'],
+           description: 'ใช้เฉพาะ job ที่ไม่ได้ชื่อ deploy-<service>')
+    string(name: 'TAG', defaultValue: '',
+           description: 'ว่าง = latest ล่าสุด · หรือใส่ sha-xxxxxxx / latest@sha256:... เพื่อ deploy หรือ rollback เวอร์ชันที่ระบุ')
   }
   environment {
-    MANAGER   = 'deploy@192.168.88.111'          // erp-app-01 (Swarm manager)
+    MANAGER   = 'deploy@192.168.88.111'
     STACK_DIR = '/opt/erp-infra/stacks/erp'
   }
   options {
@@ -18,14 +26,20 @@ pipeline {
     stage('Resolve') {
       steps {
         script {
-          if (!params.TAG?.trim()) { error 'ต้องระบุ TAG' }
-          env.IMAGE_TAG = params.TAG.trim()
-          env.VAR = [
-            'erpapi'  : 'ERPAPI_TAG',
-            'erpapp'  : 'ERPAPP_TAG',
-            'chat-api': 'CHATAPI_TAG',
-            'ticker'  : 'TICKER_TAG'
-          ][params.SERVICE]
+          def images = [
+            'erpapi'  : ['ERPAPI_TAG',  'nohservdoc/go-crmapi24'],
+            'erpapp'  : ['ERPAPP_TAG',  'nohservdoc/go-crmapp24'],
+            'chat-api': ['CHATAPI_TAG', 'nohservdoc/go-chat-api'],
+            'ticker'  : ['TICKER_TAG',  'nohservdoc/go-ticker-job'],
+          ]
+          def job = env.JOB_BASE_NAME
+          env.SVC = job.startsWith('deploy-') ? job.substring('deploy-'.length()) : params.SERVICE
+          if (!images.containsKey(env.SVC)) { error "ไม่รู้จัก service '${env.SVC}' (ชื่อ job ต้องเป็น deploy-erpapi / deploy-erpapp / deploy-chat-api / deploy-ticker)" }
+          env.VAR   = images[env.SVC][0]
+          env.IMAGE = images[env.SVC][1]
+          env.REQ_TAG = (params.TAG ?: '').trim()
+          if (env.REQ_TAG && !(env.REQ_TAG ==~ /[A-Za-z0-9_.@:-]+/)) { error "TAG มีอักขระที่ไม่อนุญาต: ${env.REQ_TAG}" }
+          currentBuild.description = "${env.SVC} ${env.REQ_TAG ?: 'latest'}"
         }
       }
     }
@@ -33,17 +47,29 @@ pipeline {
       steps {
         sshagent(['swarm-manager-ssh']) {
           sh '''
-            ssh -o BatchMode=yes "$MANAGER" "cd $STACK_DIR \
-              && sed -i 's/^${VAR}=.*/${VAR}=${IMAGE_TAG}/' versions.env \
-              && ./deploy-stack.sh \
-              && ./wait-converge.sh erp_${SERVICE} 300"
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$MANAGER" \
+              "SVC='$SVC' VAR='$VAR' IMAGE='$IMAGE' REQ_TAG='$REQ_TAG' STACK_DIR='$STACK_DIR' bash -s" <<'REMOTE'
+set -euo pipefail
+cd "$STACK_DIR"
+TAG="$REQ_TAG"
+if [ -z "$TAG" ]; then
+  docker pull -q "$IMAGE:latest" >/dev/null
+  TAG="latest@$(docker image inspect -f '{{index .RepoDigests 0}}' "$IMAGE:latest" | cut -d@ -f2)"
+fi
+echo "deploy $SVC → $IMAGE:$TAG"
+echo "ก่อนหน้า: $(grep "^$VAR=" versions.env || true)"
+sed -i "s|^$VAR=.*|$VAR=$TAG|" versions.env
+grep -q "^$VAR=" versions.env || echo "$VAR=$TAG" >> versions.env
+./deploy-stack.sh
+./wait-converge.sh "erp_$SVC" 300
+REMOTE
           '''
         }
       }
     }
   }
   post {
-    success { echo "deploy ${params.SERVICE}:${params.TAG} สำเร็จ" }
-    failure { echo "deploy ${params.SERVICE}:${params.TAG} ไม่ผ่าน — Swarm rollback ให้แล้ว ตรวจด้วย docker service ps erp_${params.SERVICE}" }
+    success { echo "deploy ${env.SVC} สำเร็จ" }
+    failure { echo "deploy ${env.SVC} ไม่ผ่าน — Swarm rollback ให้แล้ว ตรวจด้วย docker service ps erp_${env.SVC} บน erp-app-01" }
   }
 }
