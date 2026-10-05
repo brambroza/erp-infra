@@ -10,6 +10,11 @@ source "$DIR/inventory.env"
 # shellcheck disable=SC1091
 [ -f "$DIR/secrets.env" ] && source "$DIR/secrets.env"
 
+# กันพิมพ์ชื่อผิดเครื่อง (เช่นรัน erp-gw-01 บน erp-gw-02) → keepalived ได้ IP/priority สลับกัน
+if [ "$(hostname)" != "$ROLE" ]; then
+  echo "เครื่องนี้ชื่อ $(hostname) แต่สั่ง $ROLE — ใช้: sudo $0 $(hostname)" >&2; exit 1
+fi
+
 if [ "$ROLE" = "$GW_MASTER_HOST" ]; then
   SELF_IP=$GW_MASTER_IP; PEER_IP=$GW_BACKUP_IP; PRIORITY=110
 elif [ "$ROLE" = "$GW_BACKUP_HOST" ]; then
@@ -60,10 +65,11 @@ systemctl restart keepalived
 ufw allow 80/tcp
 ufw allow 443/tcp
 # VRRP = IP protocol 112 ต้องใส่ผ่าน before.rules
-if ! grep -q 'vrrp-peer' /etc/ufw/before.rules; then
-  sed -i "/^# End required lines/a -A ufw-before-input -p 112 -s $PEER_IP -m comment --comment vrrp-peer -j ACCEPT" \
-    /etc/ufw/before.rules
-fi
+# ลบกฎเดิมก่อนเสมอ (รันซ้ำได้ และแก้กรณีเคยใส่ PEER_IP ผิด)
+sed -i '/--comment vrrp-peer/d' /etc/ufw/before.rules
+sed -i "/^# End required lines/a -A ufw-before-input -p 112 -s $PEER_IP -m comment --comment vrrp-peer -j ACCEPT" \
+  /etc/ufw/before.rules
 ufw reload
 
 echo "เสร็จ: ip -br addr show $IFACE  (เครื่องที่ถือ VIP จะเห็น $VIP)"
+echo "เช็ก: curl -s http://127.0.0.1:8081/healthz   ·   grep vrrp-peer /etc/ufw/before.rules  (ต้องเป็น $PEER_IP)"
