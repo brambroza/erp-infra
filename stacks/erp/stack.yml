@@ -37,11 +37,14 @@ services:
       - { target: 6600, published: 6344, mode: host }      # SignalR hubs: sticky จาก Nginx
     volumes:
       - erp-files:/app/wwwroot           # เดิม: -v /mnt/docker-data/binds/VolumsAPI:/app/wwwroot
-    # image .NET ไม่มี curl/wget ให้เพิ่มใน Dockerfile และทำ /health ก่อน แล้วค่อยเปิด
-    # healthcheck:
-    #   test: ["CMD", "curl", "-fs", "http://127.0.0.1:6600/health"]
-    #   interval: 10s
-    #   start_period: 30s
+    # image aspnet (Debian) ไม่มี curl/wget → ใช้ bash /dev/tcp ยิง GET / แล้วดูว่าได้คำตอบ HTTP กลับมา (status ใดก็ได้)
+    # ingress จะส่ง request ให้ task นี้ก็ต่อเมื่อ healthy → ไม่มี 000 ช่วงที่ .NET กำลัง start
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/6600 && printf 'GET / HTTP/1.0\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q '^HTTP/'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
     logging: *logging
     deploy:
       # ยังรันได้แค่ 1 ตัว: SignalR ไม่มี Redis backplane (แจ้งเตือนไม่ข้ามตัว) และ background service รันซ้ำทุกตัว
