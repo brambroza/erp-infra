@@ -1,0 +1,77 @@
+# Template สำหรับ erp-gw-01 / erp-gw-02 — Import ใน Zabbix: Data collection (หรือ Configuration) → Templates → Import
+# format 6.0 import ได้ทั้ง Zabbix 6.0 / 6.4 / 7.0 · ต้องมี template "Linux by Zabbix agent" และ "Nginx by Zabbix agent" (มากับ Zabbix อยู่แล้ว)
+zabbix_export:
+  version: '6.0'
+  groups:
+    - uuid: c74cf4d2816849fa97cd3095aeba6b79
+      name: Templates/ERP
+  templates:
+    - uuid: 7b82f64f65644e4faa8fae107ecfda8a
+      template: 'ERP Gateway'
+      name: 'ERP Gateway'
+      description: 'erp-infra gateway: nginx (stub_status ที่ 127.0.0.1:8081), keepalived, VIP, อายุ cert — ต้องรัน scripts/50-zabbix.sh บนเครื่องก่อน'
+      templates:
+        - name: 'Linux by Zabbix agent'
+        - name: 'Nginx by Zabbix agent'
+      groups:
+        - name: Templates/ERP
+      items:
+        - uuid: dccda1e366ce4c81bda7e0d8031d1315
+          name: 'VIP ถืออยู่ที่เครื่องนี้'
+          key: erp.vip
+          delay: 15s
+          history: 30d
+          description: '1 = เครื่องนี้ถือ VIP, 0 = ไม่ถือ (ผลรวมของสอง gateway ต้องเท่ากับ 1 เสมอ)'
+          tags:
+            - tag: component
+              value: vip
+          triggers:
+            - uuid: 04e1d0142649412fbc2d912d6c388540
+              expression: 'change(/ERP Gateway/erp.vip)<>0'
+              name: 'VIP ย้ายเครื่อง: {HOST.NAME} ถือ VIP = {ITEM.LASTVALUE}'
+              priority: WARNING
+              manual_close: 'YES'
+              description: 'keepalived ย้าย VIP — ดูว่า nginx หรือเครื่องอีกตัวมีปัญหาอะไร (journalctl -u keepalived)'
+        - uuid: 9bc32ad406bf47af99b857796f0b613d
+          name: 'จำนวนวันก่อน wildcard cert หมดอายุ'
+          key: erp.cert.days
+          delay: 6h
+          history: 90d
+          value_type: FLOAT
+          units: วัน
+          tags:
+            - tag: component
+              value: certificate
+          triggers:
+            - uuid: 286b2537855c487b83c0964249348887
+              expression: 'last(/ERP Gateway/erp.cert.days)<0'
+              name: 'อ่าน cert จาก nginx บน {HOST.NAME} ไม่ได้'
+              priority: WARNING
+            - uuid: b8d7d89dc23a44ffaf9f64280c22babf
+              expression: 'last(/ERP Gateway/erp.cert.days)>=0 and last(/ERP Gateway/erp.cert.days)<30'
+              name: 'wildcard cert จะหมดอายุใน {ITEM.LASTVALUE} บน {HOST.NAME}'
+              priority: AVERAGE
+            - uuid: 10fb77dbbffd4368aa66dfe20adfba5d
+              expression: 'last(/ERP Gateway/erp.cert.days)>=0 and last(/ERP Gateway/erp.cert.days)<7'
+              name: 'wildcard cert เหลือไม่ถึง 7 วัน บน {HOST.NAME}'
+              priority: HIGH
+        - uuid: 19b61726fabf41499d24b8e0b8cf1fbd
+          name: 'keepalived: จำนวน process'
+          key: 'proc.num[keepalived]'
+          delay: 30s
+          history: 30d
+          tags:
+            - tag: component
+              value: keepalived
+          triggers:
+            - uuid: 0421886fe62f4e8eb1eba5e9419e188c
+              expression: 'last(/ERP Gateway/proc.num[keepalived])=0'
+              name: 'keepalived ไม่ทำงานบน {HOST.NAME} (เครื่องนี้รับ VIP แทนไม่ได้)'
+              priority: HIGH
+      macros:
+        - macro: '{$NGINX.STUB_STATUS.HOST}'
+          value: 127.0.0.1
+        - macro: '{$NGINX.STUB_STATUS.PORT}'
+          value: '8081'
+        - macro: '{$NGINX.STUB_STATUS.PATH}'
+          value: basic_status

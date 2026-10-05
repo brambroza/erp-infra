@@ -154,3 +154,15 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 
 - **ย้อนเวอร์ชันแอป:** แก้ tag ใน `versions.env` กลับเป็นค่าเดิม แล้ว `./deploy-stack.sh`
 - **ย้อนทั้งระบบระหว่าง cutover:** เปลี่ยน port forward บน Router กลับไปเครื่องเดิม แล้ว start container เดิม
+
+## Monitoring (Zabbix 192.168.88.21)
+
+`00-common.sh` ลง zabbix-agent ให้ทุกเครื่องแล้ว · `scripts/50-zabbix.sh` เพิ่มจุดเช็กเฉพาะตามบทบาทเครื่อง (ตอนนี้: gateway)
+
+### Gateway (erp-gw-01 / erp-gw-02)
+
+1. บนแต่ละ gw: pull repo → `sudo scripts/10-gateway.sh $(hostname)` (เปิด `/basic_status` ที่ 127.0.0.1:8081) → `sudo scripts/50-zabbix.sh`
+2. Zabbix: Import `monitoring/zabbix/template-erp-gateway.yaml` (ลิงก์ Linux + Nginx by Zabbix agent มาให้แล้ว)
+3. เพิ่ม host `erp-gw-01` / `erp-gw-02` (ชื่อต้องตรงกับ hostname) interface Agent = IP ของเครื่อง port 10050 ใส่ template `ERP Gateway`
+4. trigger ข้ามเครื่อง (สร้างที่ host erp-gw-01 ครั้งเดียว) ระดับ Disaster:
+   `last(/erp-gw-01/erp.vip)+last(/erp-gw-02/erp.vip)<>1` — ไม่มีใครถือ VIP หรือถือทั้งสองเครื่อง (split brain)
