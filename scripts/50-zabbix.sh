@@ -7,10 +7,14 @@ DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$DIR/inventory.env"
 HOST="$(hostname)"
 
+# ชุดเช็กตามบทบาท → ไฟล์ monitoring/zabbix/erp-<ชุด>.userparams.conf
 case "$HOST" in
-  "$GW_MASTER_HOST"|"$GW_BACKUP_HOST") ROLE=gw ;;
-  *) echo "$HOST: ยังไม่มีชุดเช็กเฉพาะ (ตอนนี้รองรับ gateway) — ใช้ template Linux ใน Zabbix ไปก่อน"; exit 0 ;;
+  "$GW_MASTER_HOST"|"$GW_BACKUP_HOST") SETS="gw";            KEYS="erp.vip erp.cert.days proc.num[keepalived] proc.num[nginx] web.page.get[127.0.0.1,basic_status,8081]" ;;
+  "$SVC1_HOST")                        SETS="node manager";  KEYS="erp.node.containers erp.node.nfs proc.num[dockerd] erp.swarm.nodes.bad erp.swarm.failed erp.swarm.missing[erp_erpapi] erp.swarm.discovery" ;;
+  "$SVC2_HOST")                        SETS="node";          KEYS="erp.node.containers erp.node.nfs proc.num[dockerd]" ;;
+  *) echo "$HOST: ยังไม่มีชุดเช็กเฉพาะ — ใช้ template Linux ใน Zabbix ไปก่อน"; exit 0 ;;
 esac
+ROLE="${SETS// /+}"
 
 command -v zabbix_agentd >/dev/null || { echo "ไม่พบ zabbix_agentd — รัน 00-common.sh ก่อน" >&2; exit 1; }
 CONF=/etc/zabbix/zabbix_agentd.conf
@@ -24,14 +28,25 @@ mkdir -p "$INC_DIR"
 
 sed "s/__VIP__/$VIP/" "$DIR/monitoring/zabbix/erp-zbx.sh" > /usr/local/bin/erp-zbx.sh
 chmod 755 /usr/local/bin/erp-zbx.sh
-install -m 644 "$DIR/monitoring/zabbix/erp-$ROLE.userparams.conf" "$INC_DIR/erp-infra.conf"
+cat $(for x in $SETS; do echo "$DIR/monitoring/zabbix/erp-$x.userparams.conf"; done) > "$INC_DIR/erp-infra.conf"
+chmod 644 "$INC_DIR/erp-infra.conf"
+
+# คำสั่ง docker ต้องใช้ root → อนุญาต user zabbix เรียก sudo ได้เฉพาะ script นี้ (ไม่เพิ่มเข้า group docker)
+if [ "$SETS" != "gw" ]; then
+  echo 'zabbix ALL=(root) NOPASSWD: /usr/local/bin/erp-zbx.sh' > /etc/sudoers.d/zabbix-erp
+  chmod 440 /etc/sudoers.d/zabbix-erp
+  visudo -cf /etc/sudoers.d/zabbix-erp >/dev/null
+  # docker service ps หลายตัวใช้เวลา → ขยาย timeout ของ agent (ค่าเริ่มต้น 3 วินาที)
+  if grep -qE '^Timeout=' "$CONF"; then sed -i 's/^Timeout=.*/Timeout=15/' "$CONF"; else echo 'Timeout=15' >> "$CONF"; fi
+fi
 
 # ให้ Zabbix server ถามได้ + ชื่อ host ต้องตรงกับชื่อในหน้า Zabbix
 sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/; s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/; s/^Hostname=.*/Hostname=$HOST/" "$CONF"
 systemctl restart zabbix-agent
 
 echo "== ทดสอบค่าที่ Zabbix จะได้ =="
-for k in erp.vip erp.cert.days 'proc.num[keepalived]' 'proc.num[nginx]' 'web.page.get[127.0.0.1,basic_status,8081]'; do
-  printf '%-45s ' "$k"; zabbix_agentd -t "$k" 2>/dev/null | sed -E 's/^.*\[[a-z]\|//; s/\]$//' | tr '\n' ' '; echo
+set -f   # key มี [ ] ห้าม shell ขยายเป็นชื่อไฟล์
+for k in $KEYS; do
+  printf '%-45s ' "$k"; sudo -u zabbix zabbix_agentd -t "$k" 2>/dev/null | sed -E 's/^.*\[[a-z]\|//; s/\]$//' | tr '\n' ' ' | cut -c1-120; echo
 done
 echo "เสร็จ: $HOST ($ROLE) · ต่อไปเพิ่ม host ในหน้า Zabbix ตาม docs/runbook.md ข้อ Monitoring"

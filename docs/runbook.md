@@ -166,3 +166,10 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 3. เพิ่ม host `erp-gw-01` / `erp-gw-02` (ชื่อต้องตรงกับ hostname) interface Agent = IP ของเครื่อง port 10050 ใส่ template `ERP Gateway`
 4. trigger ข้ามเครื่อง (สร้างที่ host erp-gw-01 ครั้งเดียว) ระดับ Disaster:
    `last(/erp-gw-01/erp.vip)+last(/erp-gw-02/erp.vip)<>1` — ไม่มีใครถือ VIP หรือถือทั้งสองเครื่อง (split brain)
+
+### Swarm (erp-app-01 / erp-app-02)
+
+1. บนแต่ละเครื่อง: pull repo → `sudo scripts/50-zabbix.sh` (ลง UserParameter + sudoers ให้ user zabbix เรียกได้เฉพาะ `/usr/local/bin/erp-zbx.sh`)
+2. Zabbix: Import `monitoring/zabbix/template-erp-swarm.yaml`
+3. host `erp-app-01` ใส่ `ERP Swarm node` + `ERP Swarm manager` · host `erp-app-02` ใส่ `ERP Swarm node`
+4. ระหว่าง drain เครื่องเพื่อซ่อม trigger "ไม่มี container ของ erp" จะเด้ง — ปิดชั่วคราวได้ (Maintenance)

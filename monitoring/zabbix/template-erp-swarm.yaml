@@ -1,0 +1,114 @@
+# Template สำหรับ erp-app-01 / erp-app-02 — Import ใน Zabbix: Data collection (หรือ Configuration) → Templates → Import
+# erp-app-01 ใส่ทั้งสองตัว (ERP Swarm node + ERP Swarm manager) · erp-app-02 ใส่แค่ ERP Swarm node
+# ต้องรัน scripts/50-zabbix.sh บนเครื่องก่อน · format 6.0 import ได้ทั้ง 6.0 / 6.4 / 7.0
+zabbix_export:
+  version: '6.0'
+  groups:
+    - uuid: c74cf4d2816849fa97cd3095aeba6b79
+      name: Templates/ERP
+  templates:
+    - uuid: 297a8e4d4a10459a973dd337d6248a05
+      template: 'ERP Swarm node'
+      name: 'ERP Swarm node'
+      description: 'ทุกเครื่องใน Swarm: dockerd, container ของ stack erp, NFS erp-files'
+      templates:
+        - name: 'Linux by Zabbix agent'
+      groups:
+        - name: Templates/ERP
+      items:
+        - uuid: 4e8dab5b8b594166b9008de03820329d
+          name: 'dockerd: จำนวน process'
+          key: 'proc.num[dockerd]'
+          delay: 30s
+          tags:
+            - tag: component
+              value: docker
+          triggers:
+            - uuid: c16761db478946809daac47669667d89
+              expression: 'last(/ERP Swarm node/proc.num[dockerd])=0'
+              name: 'Docker ไม่ทำงานบน {HOST.NAME}'
+              priority: HIGH
+        - uuid: a275255e0d0e49d989643da8de8b4738
+          name: 'container ของ stack erp ที่รันบนเครื่องนี้'
+          key: erp.node.containers
+          delay: 1m
+          tags:
+            - tag: component
+              value: docker
+          triggers:
+            - uuid: 3521876cd4fb4ada93dfac145459fe18
+              expression: 'max(/ERP Swarm node/erp.node.containers,5m)=0'
+              name: 'ไม่มี container ของ erp รันบน {HOST.NAME} มา 5 นาที'
+              priority: HIGH
+              description: 'ถ้าตั้งใจ drain เครื่องนี้อยู่ ให้ปิด trigger ชั่วคราว · ไม่ได้ตั้งใจ = ดู docker node ls บน erp-app-01'
+        - uuid: 13001eb5753849138eff518e302ec718
+          name: 'NFS erp-files ถูก mount'
+          key: erp.node.nfs
+          delay: 1m
+          tags:
+            - tag: component
+              value: nfs
+          triggers:
+            - uuid: 45f2919afbd84076bd61f56d95ac1de8
+              expression: 'max(/ERP Swarm node/erp.node.nfs,3m)=0 and last(/ERP Swarm node/erp.node.containers)>0'
+              name: 'NFS erp-files ไม่ได้ mount บน {HOST.NAME} (อัปโหลด / ไฟล์จะพัง)'
+              priority: HIGH
+    - uuid: 41305524959b4f35aaa4ad10a0283a35
+      template: 'ERP Swarm manager'
+      name: 'ERP Swarm manager'
+      description: 'เฉพาะ erp-app-01 (manager): replica ของทุก service, node ใน cluster, task ที่ล้ม'
+      groups:
+        - name: Templates/ERP
+      items:
+        - uuid: de1561f41ed746c3aecad95021fc02fd
+          name: 'Swarm: node ที่ไม่ Ready / Active'
+          key: erp.swarm.nodes.bad
+          delay: 1m
+          tags:
+            - tag: component
+              value: swarm
+          triggers:
+            - uuid: 891ed681077544c5b058fd6328820dda
+              expression: 'last(/ERP Swarm manager/erp.swarm.nodes.bad)>0'
+              name: 'Swarm: มี {ITEM.LASTVALUE} node หายหรือไม่พร้อม'
+              priority: HIGH
+              description: 'บน erp-app-01: docker node ls'
+        - uuid: a191eb1692e54b38b9ba453cd7c71fe4
+          name: 'Swarm: task ที่ล้ม (Failed/Rejected) ในชั่วโมงล่าสุด'
+          key: erp.swarm.failed
+          delay: 2m
+          tags:
+            - tag: component
+              value: swarm
+          triggers:
+            - uuid: 7b6a5a8eef7745aba285cbe03b974efd
+              expression: 'last(/ERP Swarm manager/erp.swarm.failed)>=3'
+              name: 'Swarm: container ล้มบ่อย ({ITEM.LASTVALUE} ครั้งในชั่วโมงล่าสุด)'
+              priority: AVERAGE
+              description: 'บน erp-app-01: docker service ps <service> --no-trunc ดูคอลัมน์ ERROR'
+      discovery_rules:
+        - uuid: 3278b6173abc4272b51166ca55642486
+          name: 'Swarm services ของ stack erp'
+          key: erp.swarm.discovery
+          delay: 10m
+          lifetime: 1d
+          item_prototypes:
+            - uuid: 9c5ad862816443b5b97a502552c48a12
+              name: '{#SVC}: replica ที่ขาด'
+              key: 'erp.swarm.missing[{#SVC}]'
+              delay: 1m
+              tags:
+                - tag: component
+                  value: swarm
+                - tag: service
+                  value: '{#SVC}'
+              trigger_prototypes:
+                - uuid: 16de82a553514b7282ad036c8cfa01b9
+                  expression: 'min(/ERP Swarm manager/erp.swarm.missing[{#SVC}],3m)>0'
+                  name: '{#SVC}: replica ไม่ครบ (ขาด {ITEM.LASTVALUE})'
+                  priority: HIGH
+                  description: 'บน erp-app-01: docker service ps {#SVC} --no-trunc'
+                - uuid: 5abce471bb0c4aa69acd88851248f058
+                  expression: 'last(/ERP Swarm manager/erp.swarm.missing[{#SVC}])<0'
+                  name: '{#SVC}: หา service ไม่เจอ'
+                  priority: WARNING
