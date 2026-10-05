@@ -21,6 +21,12 @@ export ROLE SELF_IP PEER_IP PRIORITY VIP IFACE NET_PREFIX SVC1_IP SVC2_IP LEGACY
 
 apply_nginx() {
   rm -f /etc/nginx/sites-enabled/default
+  # server_tokens มีใน nginx.conf ของ Ubuntu อยู่แล้ว (บางเวอร์ชัน comment ไว้) → เปิดที่นั่นจุดเดียว
+  if grep -qE '^\s*#?\s*server_tokens\s' /etc/nginx/nginx.conf; then
+    sed -i -E 's/^(\s*)#?\s*server_tokens\s+\w+;/\1server_tokens off;/' /etc/nginx/nginx.conf
+  else
+    sed -i -E 's/^(\s*http\s*\{)/\1\n\tserver_tokens off;/' /etc/nginx/nginx.conf
+  fi
   mkdir -p /etc/nginx/infra /etc/nginx/ssl
   if [ ! -s /etc/nginx/ssl/star_nisolution_co_th.key ]; then
     echo "ยังไม่มี wildcard cert: copy ไฟล์ไปที่ /etc/nginx/ssl ก่อน (ดู docs/runbook.md ข้อ 4)" >&2
