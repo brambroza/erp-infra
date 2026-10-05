@@ -1,0 +1,959 @@
+# Zabbix map "ERP HA Topology" — Monitoring → Maps → Import (ติ๊ก Images: Create new, Maps: Create new)
+# ต้องมี host ครบ: erp-vip, erp-gw-01, erp-gw-02, erp-app-01, erp-app-02, erp-db-01, erp-ci-01
+# สร้างจาก monitoring/zabbix/map/gen_map_import.py — แก้ที่ script แล้วสร้างใหม่
+zabbix_export:
+  version: '6.0'
+  images:
+  - name: erp-dot-ok
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAEnUlEQVR4nJ2XXWxURRTHf2fu3W0XqBSsfDQEFAVRRInGSrTGaERUSDAR4hMhPlSEYEJifDR+PBh98kVJRWN8MqJBjIkPgkrkQxPxgQCCoKIFqZZCC+223e3emb8Pe7fUpV9wks3kzp1zfndm/nPmrDEBk+QAB8jMfNW7CDAgmFkYL5aNAzLADYekgLr0sWhmA1XjbSzwqEBJUQUkaQ6wFngQWBRCmI1zQMgDxx3uB+BzMztc7TshS2eBpEZJH3rvezSOee8TSbskLUt9XTrjCcNWSGofFrMkKZHkuwq94cJAT0h84tO+UtW4LaNBrRpmZl5SC7At7U6A6Lv2w/bpqf2cuHiWtvw5gsTMXD03XzeLVXObWDv/fjIu9knwLnaRAe8DG6jSgI0AWw7s8gQf4ezcwEW3cX8rX505SCl4si4m62IwIwmeQV9CwNLr57O1eQNNNyxU4n0SR1EGeM3MXpUUm1kyBExlL2AmcMiHMCNyTocunHJP736T0/lOptVMwTACQlL5aw0Mw8zoHRwgco6tDzzPugUPKwnexy6KgMfM7JvKhKxqdh8B64Gks3ApXvbFS5zt76I+O5lSSMbc+8gcSfDkkwK7n3ydh2bfESif3ZPAUqAA4CRZCmsE1qQzjTbtb6Ut3zkhGIBXIHYRNVGGlr3v0FXMO8ADC4HlZiYgckCc+jwDTAb8vn+P2ZdtPzG9ZsqEYMOhk+Nafutp54Nfd1W6BTxbeajsHUBz2tonf+wlkcds/GN0BTR4JsU1fPbnAUrBG2A+hCZJtYB3gJdUG0JYAuAJdqz7DFkXE6Qxg49kArIuw999F+jo7y7nX+cagJvMTC5d25xgFkBvsd/a8p1kXTykxqsDithFdBfznMp3AMhBFmiE8pIOfVnFISiMndUnCK5aIUGqUqDkoAcgF9UwM1dPSf6aoV6BukyO2blpABZC8KTxHeXUk3fOHQWojbPh1qmNFH1yTaIxjJJPmJmrZ+6UBgEmuAicGAKmY39OW62a14TgmoCRc/T7Io823kUurgmAIud+AfokRZXDCbCdcqJ2q2+8j7sb5tMz2E9kbrTYI84uCZ66TI7Ni1de7oaP00vZnJkFSc7MjgAHAFfjMr61eSORRSTBTwhqGLGL6Cpc4q2m9SyY2qgU1g3sSLXiqyO9CPgQgu5puEWtzRvJJwUKfpCMi3BmVwjJrAwSoqO/iy1LnmLDbY/jCQnl7XrZzM5T1opGup62AG/7EAYj5zJ72o/Yc/ve5feef5gU15B1MbGLMMpqLIWEvqRIXWYSb9y7jk23P0HqmwV2mNma4SXHaBfwNqAlvWLsfKHHvXf8a3b+9SNn+7voLuaRRF0mx4zcVB5pvJPNi1eyqH6OAiFxuAxwEFgBXKJc7V2ZRSRZejci6ZVhZUMiKUm8922958L37Ue1p/2IjnefUd/gQKi8HzZ+u6TpaZyxBVAFXSHp6Eg1U/oLVf0dkl4YFmviEpcUp21W0movv1PS6cR7X0XulPStpBZJMyqg6uKpYuMVwv+rLyXlgHmkiR7IAyfNrGc0n6sCpgGMNBuNFkiX/wr4EcUxzP4DmLE7SyYASacAAAAASUVORK5CYII=
+  - name: erp-dot-problem
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAEfElEQVR4nJ2XW4iVVRTHf2t/3znOzYbRcRxNEkukhzQhCMHCh9QJCrpg9BBoEqMvXSShkAoTsrf03SAksBAyjaLI8iVRo3oIU0ITpUYd09EZ5+45e+9/D993xvE41xYcNt++rN9ee6299jrGFESSAxwgMwtVYwlgQDSzOJkumwRkgBsNyQEz889bZjZUNd8mAo8LlJRUQJIWAC8AjwMPEuO8fFo/8CfOHQe+NLOT1WunJLkVSJov6ROF0KvJJAQv6bCkFflal1s8ZVibpMujVJYleUmh3NMdy903orwPeV+5at6W8aBWDTOzIKkd2JN3eyAZOPaT9X5zkNL5v/AXO5AiaXMLhYWLaHiijXuefg5L0xC9dy5NDfgY2ExVDNgYsDXAYUIIJImFrmuu85036T9yGPkyVihixUK21HtULqEYqXloGa0ffETt8kcUvfcuTQvADjN7X1JqZn4EmIe9gLnA7zGEFpckGj590l3cvB5/qQPX2ISZIUWQ8u0aZgZmhP4+LElo3bmLxudfVPQ+uDRNgLVm9mPFIKuybi+wAfDheld64dnV+M5OksZGVC5P7PwkAe+JgwPct+8QdStWRrK7exZYDgwDOEmWw+YD62JmaXLl3a2UL3ZMDQYQAqQpVpxB59uvE3q6HRCAJcAaMxOQOCDNl7wI1DsIg7+csL4fviNpbJoabBTU1dVRunCOns8/rfQK2Fj5qPgO4LG8td6vvkDeY27ya1QtCgFXW0/vt4fAlw2wGOOjkmqA4IAgqSbGuDTfpd06dwYrFlGcNDWOQRQUCvjOy5SuXnWAnHPNwCIzk8vPthZoBfD9fVa+1IGlhdvROE2gpSnhZg++42/ITrAIzIfsSO/e4f+xbCw9ukOPII9SoAz0ArjaWtLmFggebPo+BLLgqW8gmTMXMh+GEf1kqaffOXcKwM2oicX7F6NSCdzdBzCpmCFfJp3TQnrvApEllx7gzAgwn/pb3qph9ZNImvixHI+XJMShIepXriKpqY1kQXMaGJCUVC4nwH6yRO1mrn2KmqUPE/r7sgwyLes8rqGBppc3jfQCn+WPsjkzi5Kcmf0BHAOcFYth3s7dmMvS1ZSgZliS4q930bJtB8VFD1SOsxs4kMdKqHbSViAQo2qWLVfrh7uIgwNoeBhL08yn1YFklo1JlK92MnvTqzS9tBFC8GTues/MushiRWM9T1uA3YRQIkkKg8ePWue2NyhdOI+rrcMKBUjzbBgjKpeJQ4O4hgZa3tpO0/pXyNcWgQNmtm50yTHeA7wHaB95E29cd9379tL3/df4K52Emz0g4eobSGc3U7dyFbM2tFNcvETE6HGuAPwKtAE3yaq9u7OIJMvfRiRtH1U2eEle3ofSpY448PMxDZw4quFzZ+UHB+LI+G3ZL2lWrmfiu1UFbZN0aqySKf/Fqv5/Jb02StfUL7KkNG+Lkp5RCAcl/aPgQxXkmqQjktoltVRA1cVTRSYrhO+oLyXVAgvJEz1ZXXrWzHrHWzMtYK7AyLPReIp0+69AGDM4Rsl/G2krTDEKaV4AAAAASUVORK5CYII=
+  - name: erp-dot-off
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAEcklEQVR4nKWXS4yURRDHf1U9s7MPVMDNImBAfKCi4htJBA8qEvHgBePZA/FkYuLZqDdvnrxg4tGEEDVRo3GDB/Fx0ahRBFERAcEHz9mdndndma6/h/lmHYZddsFKJl++/rrq11VdXV1jLEAkOeCAzCz3fEuAAWFmMZ8tmwdkgHdDCsAVxeuUmTV65tvFwHMCJaUOSNK1wFPAZuCWiFju7gC1iDjg7l8C75jZ9726C5LCCyStkPRmznlM80jOuSVpVNLGQtcLjxcM2yrpRJfNpqSWpFxvNGKi3oiccy7Gmj3znp8Lar0wM8uSdgA7i+EWkA4fPWH7Dx7i1NlzVMdqSGLR4CBLFl/B2htWc+va60nuOefwlNyAN4Bn6ckBmwW2BRiNILtjE/WGf7jnc3757Qg5REpOcgeMiCBHRoLlI8M8/uiDrLxmRDnnVkqpDLxiZi9LKplZawZYpL2AZcB3ETHi7vrrn9O++71RqmM1+vsrmIEEktqrNWsbMGNqeho3Z9ujm1i/7iblHDklT8BjZran45B3PDUzAa8Cy9w9T9Qnffd7o4zX6gwO9COJCM3AioUSEhFBpVzG3Xj/40858sefljphgNclDQAhyVySFaFcAWwvPE0fffIZ1bEalUofOeY9z4REcielxAeje2lMTjmQgbXAlsKh5ECp0HkaGALy0eN/2cFDR+jvrxALgHVDy+USp89U+faHn2YCATzTeensHcCmTnj3HfiVCGE2/zHqFUVQLpfYf/AQEWGARcQGSf1AdiBL6o+IOzrAU6fPktzP269LkZSc8Vqd8Ym6A3L3YWCNmcmL2A4A1wA0JqesOl4jJW+n5KV6CLg7jckpqtVaZ6gPWAHtkJ6v0JX2/0dmsSOATulpAmMAfeXE0OAAEZcHNdqgSqXM0NAAtPcwd+w77dJTc/d9AKVSKa5espicM1xG0gDknBkaHOCqKxepWMM54OAMsJj3dfHU2htXI7isLDV3mq3MmlUrKZdKQTtpfgQmJKXO4QTYRbtQ+803XMfykeGiXC0catCuOn1lNtxze/fwW8WlbG5mIcnN7AfgC8BT8rxty2bcjByxYKi5U683eOShB1i6+MpOOM8Cbxe5knuz9AUgR4RWLBvWE1s202y2aLYy7j5riM2M4vanVquz8b47uXf9rUS0owW8aGanaOeKZruengdei4hpdy//fuyEfTC6lzPnxiiXSqTkMwBJ5AiazRaVvjIPb9rAfXeto9DtA942s+3dLcdcF/BOYEdEZHe3emPSv/n+AD/9cpixWp3JySmEqJT7GBzsZ82qldx/920ML10s2nlQBr4CtgJV2t3ehedMkhV3I5Je6mobWpJaOed8rjoeR46d0OGjx3Xy9FlNTU9H53vX/F2SlhZ2LiguF4NulbRvtp6p+EXP+N+SnuuydXFYD7hUPPskPSnpXUlHi8apW05K+kTSDkkjHVBv89SR+Rrh8/rL4uZeTVHogRrws5mNzaVzScDCgFFUo7kM6b+/AnnW5OiSfwF5NTw7TVaruQAAAABJRU5ErkJggg==
+  - name: erp-node-users
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAD9klEQVR4nOxWXWibZRQ+5/vSJDZTOwpj3U/SSrLpmjVM4xIzdQuKgozhBiLsxqGoaBGUMkUYInqhN8q0U7wYOJEJc3qh3jhxahW0Sam2NslW6EjSdlOzVbvR5ff7vuPzpU23ZUmXwujVDrz53p/nvM/5ec8hFlpisdASyw3ChuTY8LCjRb1lByl8m7kWQ06d1y9887DPd7Eaywtd9HvijKskxW4RWTcHHhVbU2/Qs2aygvkxlll2E2c/ZKHlQEzN7korxpSatz3v96/KXn6nUo8sEk8/VtKLCRLqYWK3OXDhXs5ro9GR1K4KrplmdplkQvRuwOvaYw5m3g9sq2Yv7Ki+tybhYHzCTYYcwvSY3W5vC3jbvebAfCWxHMfln0ZOpjrmYrSORLKBTldfRf/iBmefkFFgVtY3RFgy9GcRkibrMnnS516Zqeyb8yab/SmQNEuJny4HTxQRRhwuk21EBrOqIxVqQ4TM5MXP+KaOjunqszs9bWdBMw6OrlmsTCLcjv5Y6v4KZiAxHoYlzcj5eLV+vVeqwWSheiKsC4tuTnXKHlXZsUUh7onE0nuwr8KzFvMBFQ36khrxEExReOD8I5lsqT6LnJhsRUhdGP3mOtTZ+e+0dv45aH0GnTF8E0JyeFqf7r6vy/VftX7NsihfqpVO4fgH1Wp9xr9+1Tlzf3js7xX5fO4g9u+xOsRTK+TXkrp1GEkkHyWdDwNhR4jiAFqRMA/cz4ui7A52Or+6ZGB6O3LmY+G0pml/wcORLT53pta9dTuNwTSkqLJPDH4cdeUUKmc1SiofsZJl6CrLDWoDJqiqKmCiR+PpL5Zbi0c9Hk9hQQ/hDUfjqRcxfQvHNpp9PIm54w2zOlJgUV6+2+vshTHzj+vzWMzazjd7RIyHsAyL0Dm2NO0N3LFmqiZhMpm0Z2boW4RuKy79Tkh5s9XmHPB4uFA5P5tTN4thvIblAxjHHeR6xOvlYrXhQ6MTq/Ml7R0YdDqbSb4SDoe1qwgjI6n3sdMN63dv3ug8QgsISuAJGHWIyi2tvacWpv/PsbtYsbyOqH0f3Njxnrk3XxbRExNbQfYCpvuvRWYKeuYn+BzAeGlgJLmtFibY5R5EQn6Glw/+OjS6+gpC0fS3EfPT+q3qPmpQHNT8KnTO4IG9UQ+DHvGb+VVt9k3zhNFYEk2ZAqTIB6G1a3PUoHi9K2YUpo+QmXvLtVtDjAv/DKLha2bZzBPC7Z1ktkWFf6JFikFlHSZd21nrPBQK5dAEv1YMOmmuLXNKKFzK5W53DdAixZJ3RjR7Og+rt2N5sBYm2NXxcWVe9hBJ7UM59YaZNVqk+P1cgrEHFOZfGsEzLbHc+Jt43eV/AAAA///58tK7AAAABklEQVQDAKZKkkiYHwSbAAAAAElFTkSuQmCC
+  - name: erp-node-cloud
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAACVklEQVR4nOyVT2gTQRTG3xvXtjSmKpJaRJqNIBhJxCqmoeTiWUUQRA+CngQ1IIL24q1elPbkXRSroHjQgwcvXkxrNza11N1oUcMmCFqthNImrdFmx28jlCL+2XbTPfUHy86+efu+eTNvZhRaBhnjY/u8qGxZU6WmqiJm4uHgiNN/2amjpn/ezDzXLYnO4qemxX2wFWF7KomvxyPBAdeCmpHfzyQfwb0Fnw+IOSVZ5qhKbYiwF0G6YN9dE5fUF4+ql5YtmNbzB+D1GIHGWVEOd4a3vv2T39AbUxXzfBe+XUj5YWdUPbJkQcP4sq5Ms7ZAscEnEx2h0BT9B0037zHzMYh2Q7T3r4KaUdjJLJPSkglYVbaXRlIF0xdgErFYpH2YHDAwPulf+6M8hhghHzX7I5HW0uJ+YTtg2m5gjbIQOIPRTeJ9EwXQL5kzTHzaqZhNYkdgBgPvsdtlKh/6vZ9REK+RTRiVdoUa/X3x7ZumySWZXHF9dW56Cus+gtj38QzGourzmmDayEtBnNgXCQ5SHUkb5lUkcRwzFLS/IX5HaW5Jsqbne/9Vxm4ZflXYZgmZRPMCiqLAo6a5wUn1uRbO5jssi1KOT5p6gHo5p5CXNPr7Pc3QxtsMgbCLhjzCPipFpcSXySNKNHtSMNPFdLZwlFYYTf+wiyVdE2jnyJK3ULI9Y+8nWmkFeGGYp5iqQ7hDv/LLd58C379VniDTPbVeKZ9R7RJ3D4JsRFz118Utbzf46PzCtkjrhYOSrBMwtFGdgOAEsxhlKVMLhzd5jOf7cFVwVXDJ/AQAAP//PZIIiwAAAAZJREFUAwBld93EQ7uvcQAAAABJRU5ErkJggg==
+  - name: erp-node-router
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAABvElEQVR4nNxWwU7CQBCdabx61SP1DJw0thc+SCOKNwNqooAmXoRo9Ic8FJQT5dzyByYYbzLOVpqAbJdZNMT4kjbbdHZeZ+f17a7BirEGK8bKCR1YAp1+XO2G0QksAQRLBP2ojYiHakxIbT+/VbGZb0XYGcQPQLA3mwBbu4XcsTSHeElTMkVABD0evzDbIwFVuuHwVppHRBiEcV2RqSVMqyEuzsu7+zy8/yKNLiS5RIRc1YgJGrp+eQW3TITXfL1Jchl/C1ZjjRBevULuxhTnF3PVJH4wLMOY1r2ie5UVm1lhJ4zvuLQGDzdBCCLa4DnNYBC1rAgTgQAcKIH4BfdcE6JVN8eeKSEh4VGWkBwt2USNNnJPkQjJoF78RtZgshrL/gOBnrKSEuJ2MpmolxUDiCW+Oyy2+vQqzVY4hnf4ZThAMznneiFZ0qAfq8rIL7o7uvemHHM9XNSDRVj0wVqVTjsIu8ylJoR083SOJCJMSCcOggQjEMLkSCmMTiN1EKkjKYi81OQgan+0cSTxfjgthjFRCVUfHXi2NYm/uwErpOpNn01qzIL1mUahG8anbH/EImqCJZYi/An+/0H4EwAA///VoKVdAAAABklEQVQDALFm7M1I6PfuAAAAAElFTkSuQmCC
+  - name: erp-node-server
+    imagetype: '1'
+    encodedImage: iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAA7UlEQVR4nOyWOwrCQBCG/4k2MYVgZaedlQE7S2vxGIpH8ASC4gUEwXPY2QmpbCJopWBjJ4KSxmScWEkiBDeSQveDnV32wb/sPNg8MiaPjPlDwdXmWMpx0AO4BWYTKhB5YpZmgJltV86vS0Z0r4F7X8RGMixDHTnLY4+4G12IPylTmxnbZr3aQAocd7+TriNtkiCIgtgbUsJMV+ms6PzvR2ksaIg4fE4LKSGwJS3mmndBsyDC0HEPa3HEBUpqVBRbk8E8UdA3clPJQ/+Zh4BaHgInERuEeRi7CzJGlzZVdGnLDl3adGn7GP0v/ToPAAAA//82YLcrAAAABklEQVQDANWYcsNLjEPzAAAAAElFTkSuQmCC
+  maps:
+  - name: ERP HA Topology
+    width: '1240'
+    height: '680'
+    label_type: '4'
+    label_location: '0'
+    highlight: '1'
+    expandproblem: '1'
+    markelements: '1'
+    show_unack: '0'
+    severity_min: '0'
+    show_suppressed: '0'
+    grid_size: '50'
+    grid_show: '0'
+    grid_align: '0'
+    label_format: '0'
+    label_type_host: '2'
+    label_type_hostgroup: '2'
+    label_type_trigger: '2'
+    label_type_map: '2'
+    label_type_image: '2'
+    label_string_host: ''
+    label_string_hostgroup: ''
+    label_string_trigger: ''
+    label_string_map: ''
+    label_string_image: ''
+    expand_macros: '1'
+    background: {}
+    iconmap: {}
+    urls: []
+    selements:
+    - elementtype: '4'
+      elements: []
+      label: ''
+      label_location: '-1'
+      x: '64'
+      y: '316'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '1'
+      icon_off:
+        name: erp-node-users
+      icon_on: {}
+      icon_disabled: {}
+      icon_maintenance: {}
+      urls: []
+      evaltype: '0'
+    - elementtype: '4'
+      elements: []
+      label: ''
+      label_location: '-1'
+      x: '176'
+      y: '316'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '2'
+      icon_off:
+        name: erp-node-cloud
+      icon_on: {}
+      icon_disabled: {}
+      icon_maintenance: {}
+      urls: []
+      evaltype: '0'
+    - elementtype: '4'
+      elements: []
+      label: ''
+      label_location: '-1'
+      x: '288'
+      y: '316'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '3'
+      icon_off:
+        name: erp-node-router
+      icon_on: {}
+      icon_disabled: {}
+      icon_maintenance: {}
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-vip
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '426'
+      y: '316'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '4'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-gw-01
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '576'
+      y: '186'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '5'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-gw-02
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '576'
+      y: '486'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '6'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-app-01
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '798'
+      y: '186'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '7'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-app-02
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '798'
+      y: '486'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '8'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-db-01
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '1074'
+      y: '286'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '9'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '0'
+      elements:
+      - host: erp-ci-01
+      label: '{HOST.NAME}'
+      label_location: '-1'
+      x: '1074'
+      y: '90'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '10'
+      icon_off:
+        name: erp-dot-ok
+      icon_on:
+        name: erp-dot-problem
+      icon_disabled:
+        name: erp-dot-off
+      icon_maintenance:
+        name: erp-dot-off
+      urls: []
+      evaltype: '0'
+    - elementtype: '4'
+      elements: []
+      label: ''
+      label_location: '-1'
+      x: '1074'
+      y: '574'
+      elementsubtype: '0'
+      areatype: '0'
+      width: '200'
+      height: '200'
+      viewtype: '0'
+      use_iconmap: '0'
+      selementid: '11'
+      icon_off:
+        name: erp-node-server
+      icon_on: {}
+      icon_disabled: {}
+      icon_maintenance: {}
+      urls: []
+      evaltype: '0'
+    shapes:
+    - type: '0'
+      x: '0'
+      y: '0'
+      width: '1240'
+      height: '680'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: 0D1621
+      zindex: '0'
+    - type: '0'
+      x: '16'
+      y: '16'
+      width: '352'
+      height: '648'
+      text: "\n  อินเทอร์เน็ต"
+      font: '8'
+      font_size: '12'
+      font_color: 8796A8
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: 111D2A
+      zindex: '1'
+    - type: '0'
+      x: '380'
+      y: '16'
+      width: '290'
+      height: '648'
+      text: "\n  Gateway — HA คู่"
+      font: '8'
+      font_size: '12'
+      font_color: 7AA2FF
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: 111D2A
+      zindex: '2'
+    - type: '0'
+      x: '682'
+      y: '16'
+      width: '262'
+      height: '648'
+      text: "\n  Docker Swarm — stack erp"
+      font: '8'
+      font_size: '12'
+      font_color: 3DD6AE
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: 111D2A
+      zindex: '3'
+    - type: '0'
+      x: '956'
+      y: '16'
+      width: '268'
+      height: '648'
+      text: "\n  Data และ CI"
+      font: '8'
+      font_size: '12'
+      font_color: F2B455
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: 111D2A
+      zindex: '4'
+    - type: '0'
+      x: '514'
+      y: '120'
+      width: '152'
+      height: '494'
+      text: VRRP pair · VIP ย้ายเองใน ~2 วิ
+      font: '8'
+      font_size: '10'
+      font_color: 8796A8
+      text_halign: '0'
+      text_valign: '2'
+      border_type: '3'
+      border_width: '1'
+      border_color: 33466B
+      background_color: ''
+      zindex: '5'
+    - type: '1'
+      x: '56'
+      y: '308'
+      width: '44'
+      height: '44'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '2'
+      border_color: 7E8A98
+      background_color: 111D2A
+      zindex: '6'
+    - type: '1'
+      x: '168'
+      y: '308'
+      width: '44'
+      height: '44'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '2'
+      border_color: 7E8A98
+      background_color: 111D2A
+      zindex: '7'
+    - type: '1'
+      x: '280'
+      y: '308'
+      width: '44'
+      height: '44'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '2'
+      border_color: 7E8A98
+      background_color: 111D2A
+      zindex: '8'
+    - type: '1'
+      x: '414'
+      y: '304'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: 7AA2FF
+      background_color: 0D1621
+      zindex: '9'
+    - type: '1'
+      x: '564'
+      y: '174'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: 7AA2FF
+      background_color: 0D1621
+      zindex: '10'
+    - type: '1'
+      x: '564'
+      y: '474'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: 7AA2FF
+      background_color: 0D1621
+      zindex: '11'
+    - type: '1'
+      x: '786'
+      y: '174'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: 3DD6AE
+      background_color: 0D1621
+      zindex: '12'
+    - type: '1'
+      x: '786'
+      y: '474'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: 3DD6AE
+      background_color: 0D1621
+      zindex: '13'
+    - type: '1'
+      x: '1062'
+      y: '274'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: F2B455
+      background_color: 0D1621
+      zindex: '14'
+    - type: '1'
+      x: '1062'
+      y: '78'
+      width: '52'
+      height: '52'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '1'
+      border_width: '3'
+      border_color: B69CFF
+      background_color: 0D1621
+      zindex: '15'
+    - type: '1'
+      x: '1066'
+      y: '566'
+      width: '44'
+      height: '44'
+      text: ''
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '3'
+      border_width: '2'
+      border_color: 7E8A98
+      background_color: 111D2A
+      zindex: '16'
+    - type: '0'
+      x: '18'
+      y: '358'
+      width: '120'
+      height: '44'
+      text: 'ผู้ใช้
+
+        HTTPS 443'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '17'
+    - type: '0'
+      x: '130'
+      y: '358'
+      width: '120'
+      height: '44'
+      text: 'Cloudflare
+
+        proxied'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '18'
+    - type: '0'
+      x: '242'
+      y: '358'
+      width: '120'
+      height: '44'
+      text: 'Router
+
+        NAT 80/443 → VIP'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '19'
+    - type: '0'
+      x: '318'
+      y: '362'
+      width: '136'
+      height: '44'
+      text: 'VIP
+
+        192.168.88.100'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '2'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '20'
+    - type: '0'
+      x: '510'
+      y: '126'
+      width: '160'
+      height: '46'
+      text: 'erp-gw-01
+
+        192.168.88.101
+
+        MASTER · nginx'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '21'
+    - type: '0'
+      x: '510'
+      y: '532'
+      width: '160'
+      height: '56'
+      text: 'erp-gw-02
+
+        192.168.88.102
+
+        BACKUP · nginx'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '22'
+    - type: '0'
+      x: '727'
+      y: '72'
+      width: '170'
+      height: '96'
+      text: 'erp-app-01 (manager)
+
+        192.168.88.111
+
+        erpapp 8284
+
+        erpapi 6334 · 6344
+
+        chat-api 6335'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '23'
+    - type: '0'
+      x: '727'
+      y: '532'
+      width: '170'
+      height: '96'
+      text: 'erp-app-02 (worker)
+
+        192.168.88.112
+
+        erpapp 8284
+
+        erpapi 6334 · 6344
+
+        chat-api 6335'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '24'
+    - type: '0'
+      x: '1003'
+      y: '332'
+      width: '170'
+      height: '110'
+      text: 'erp-db-01
+
+        192.168.88.12
+
+        SQL Server Express 1433
+
+        Redis 6379
+
+        RabbitMQ 5672
+
+        NFS erp-files 2049'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '0'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '25'
+    - type: '0'
+      x: '1120'
+      y: '84'
+      width: '112'
+      height: '50'
+      text: 'erp-ci-01
+
+        192.168.88.131
+
+        Jenkins 8110'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '26'
+    - type: '0'
+      x: '1116'
+      y: '568'
+      width: '116'
+      height: '64'
+      text: 'เครื่องเดิม
+
+        192.168.88.11
+
+        app 3030 · n8n 5678'
+      font: '8'
+      font_size: '11'
+      font_color: E6EDF5
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '27'
+    - type: '0'
+      x: '600'
+      y: '334'
+      width: '70'
+      height: '34'
+      text: 'VRRP
+
+        ทุก 1 วิ'
+      font: '8'
+      font_size: '10'
+      font_color: 8796A8
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '28'
+    - type: '0'
+      x: '28'
+      y: '560'
+      width: '300'
+      height: '70'
+      text: '● เขียว = ปกติ   ● แดง = มีปัญหา   ● เทา = ปิด / ซ่อม
+
+        เส้นหนา = เส้นทางหลัก · เส้นประ = สำรอง
+
+        เส้นเป็นสีแดง = ปัญหาบนเส้นทางนั้น'
+      font: '8'
+      font_size: '10'
+      font_color: 8796A8
+      text_halign: '1'
+      text_valign: '1'
+      border_type: '0'
+      border_width: '0'
+      border_color: '000000'
+      background_color: ''
+      zindex: '29'
+    lines: []
+    links:
+    - drawtype: '0'
+      color: 7E8A98
+      label: ''
+      selementid1: '1'
+      selementid2: '2'
+      linktriggers: []
+    - drawtype: '0'
+      color: 7E8A98
+      label: ''
+      selementid1: '2'
+      selementid2: '3'
+      linktriggers: []
+    - drawtype: '2'
+      color: 7AA2FF
+      label: ''
+      selementid1: '3'
+      selementid2: '4'
+      linktriggers:
+      - drawtype: '2'
+        color: D92D20
+        trigger:
+          description: หน้าเว็บ CRM (erp) เข้าไม่ได้ผ่าน VIP มา 3 นาที — ผู้ใช้เข้าระบบไม่ได้
+          expression: min(/erp-vip/web.test.fail[erp via VIP],3m)>0
+          recovery_expression: ''
+    - drawtype: '2'
+      color: 7AA2FF
+      label: ''
+      selementid1: '4'
+      selementid2: '5'
+      linktriggers: []
+    - drawtype: '4'
+      color: 7AA2FF
+      label: ''
+      selementid1: '4'
+      selementid2: '6'
+      linktriggers: []
+    - drawtype: '3'
+      color: 7AA2FF
+      label: ''
+      selementid1: '5'
+      selementid2: '6'
+      linktriggers:
+      - drawtype: '2'
+        color: D92D20
+        trigger:
+          description: keepalived ไม่ทำงานบน {HOST.NAME} (เครื่องนี้รับ VIP แทนไม่ได้)
+          expression: last(/erp-gw-01/proc.num[keepalived])=0
+          recovery_expression: ''
+      - drawtype: '2'
+        color: D92D20
+        trigger:
+          description: keepalived ไม่ทำงานบน {HOST.NAME} (เครื่องนี้รับ VIP แทนไม่ได้)
+          expression: last(/erp-gw-02/proc.num[keepalived])=0
+          recovery_expression: ''
+    - drawtype: '2'
+      color: 3DD6AE
+      label: ''
+      selementid1: '5'
+      selementid2: '7'
+      linktriggers: []
+    - drawtype: '0'
+      color: 3DD6AE
+      label: ''
+      selementid1: '5'
+      selementid2: '8'
+      linktriggers: []
+    - drawtype: '4'
+      color: 3DD6AE
+      label: ''
+      selementid1: '6'
+      selementid2: '7'
+      linktriggers: []
+    - drawtype: '4'
+      color: 3DD6AE
+      label: ''
+      selementid1: '6'
+      selementid2: '8'
+      linktriggers: []
+    - drawtype: '2'
+      color: F2B455
+      label: ''
+      selementid1: '7'
+      selementid2: '9'
+      linktriggers:
+      - drawtype: '2'
+        color: D92D20
+        trigger: &id001
+          description: SQL Server container ไม่ทำงาน
+          expression: last(/erp-db-01/erp.db[c_mssql])=0
+          recovery_expression: ''
+      - drawtype: '2'
+        color: D92D20
+        trigger: &id002
+          description: GoAlongDatabase ไม่ ONLINE หรือ login sa ไม่ได้
+          expression: last(/erp-db-01/erp.db[mssql_online])=0 and last(/erp-db-01/erp.db[c_mssql])>0
+          recovery_expression: ''
+    - drawtype: '2'
+      color: F2B455
+      label: ''
+      selementid1: '8'
+      selementid2: '9'
+      linktriggers:
+      - drawtype: '2'
+        color: D92D20
+        trigger: *id001
+      - drawtype: '2'
+        color: D92D20
+        trigger: *id002
+    - drawtype: '4'
+      color: B69CFF
+      label: ''
+      selementid1: '10'
+      selementid2: '7'
+      linktriggers: []

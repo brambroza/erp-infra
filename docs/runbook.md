@@ -220,3 +220,7 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 | erp-app-02 | 798 | 476 |
 | erp-db-01 | 1074 | 286 |
 | erp-ci-01 | 1074 | 90 |
+
+ทางเลือก: map วาดด้วย shape ของ Zabbix เอง (ไม่ใช้รูปพื้นหลัง) — Monitoring → Maps → **Import** ไฟล์
+`monitoring/zabbix/map/zbx-map-erp-ha-topology.yaml` (ติ๊ก Images: Create new + Update existing, Maps: Create new)
+ถ้า import ไม่ผ่านเพราะหา trigger ไม่เจอ ใช้ `zbx-map-erp-ha-topology-basic.yaml` (ไม่มีเส้นแดง) · สร้างใหม่ด้วย `map/gen_map_import.py`
