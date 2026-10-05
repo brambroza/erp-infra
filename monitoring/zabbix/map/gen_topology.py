@@ -105,7 +105,7 @@ link(f'M{cf[X]+20} {cf[Y]}H{rt[X]-20}', 'old')
 link(f'M{rt[X]+20} {rt[Y]}H{vip[X]-26}', 'edge', label='443 → VIP', lx=(rt[X]+vip[X])/2 + 2, ly=rt[Y] - 10)
 g1, g2 = N['gw1'], N['gw2']
 link(f'M{vip[X]+26} {vip[Y]-6}C{vip[X]+70} {vip[Y]-6} {g1[X]-80} {g1[Y]} {g1[X]-26} {g1[Y]}', 'edge', 'solid', label='active', lx=528, ly=232, anchor='end')
-link(f'M{vip[X]+26} {vip[Y]+6}C{vip[X]+70} {vip[Y]+6} {g2[X]-80} {g2[Y]} {g2[X]-26} {g2[Y]}', 'edge', 'standby', label='standby', lx=522, ly=416, anchor='end')
+link(f'M{vip[X]+26} {vip[Y]+6}C{vip[X]+70} {vip[Y]+6} {g2[X]-80} {g2[Y]} {g2[X]-26} {g2[Y]}', 'edge', 'standby', label='standby', lx=506, ly=466, anchor='end')
 link(f'M{g1[X]} {g1[Y]+94}V{g2[Y]-30}', 'edge', 'beat', 2.4)
 t(g1[X] + 10, 338, 'VRRP', 10.5, C['muted'])
 t(g1[X] + 10, 352, 'ทุก 1 วิ', 10.5, C['muted'])
