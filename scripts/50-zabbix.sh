@@ -11,6 +11,7 @@ HOST="$(hostname)"
 case "$HOST" in
   "$GW_MASTER_HOST"|"$GW_BACKUP_HOST") SETS="gw";            KEYS="erp.vip erp.cert.days proc.num[keepalived] proc.num[nginx] web.page.get[127.0.0.1,basic_status,8081]" ;;
   "$SVC1_HOST")                        SETS="node manager";  KEYS="erp.node.containers erp.node.nfs proc.num[dockerd] erp.swarm.nodes.bad erp.swarm.failed erp.swarm.missing[erp_erpapi] erp.swarm.discovery" ;;
+  "$DATA_HOST")                        SETS="data";          KEYS="erp.db[collect_age] erp.db[srv_mounted] erp.db[backup_age_h] erp.db[backup_size_mb] erp.db[c_mssql] erp.db[c_redis] erp.db[c_rabbitmq] erp.db[mssql_online] erp.db[mssql_data_mb] erp.db[redis_ping] erp.db[redis_mem_pct] erp.db[rabbit_ok] erp.db[rabbit_alarm] erp.db[rabbit_max_queue] erp.db[nfs_server] erp.db[nfs_export]" ;;
   "$SVC2_HOST")                        SETS="node";          KEYS="erp.node.containers erp.node.nfs proc.num[dockerd]" ;;
   *) echo "$HOST: ยังไม่มีชุดเช็กเฉพาะ — ใช้ template Linux ใน Zabbix ไปก่อน"; exit 0 ;;
 esac
@@ -32,7 +33,14 @@ cat $(for x in $SETS; do echo "$DIR/monitoring/zabbix/erp-$x.userparams.conf"; d
 chmod 644 "$INC_DIR/erp-infra.conf"
 
 # คำสั่ง docker ต้องใช้ root → อนุญาต user zabbix เรียก sudo ได้เฉพาะ script นี้ (ไม่เพิ่มเข้า group docker)
-if [ "$SETS" != "gw" ]; then
+if [ "$SETS" = "data" ]; then
+  # เก็บค่าทุกนาทีด้วย root (อ่าน /opt/data/.env ได้) แล้วเขียนไฟล์ที่ไม่มีความลับให้ Zabbix อ่าน
+  echo '* * * * * root /usr/local/bin/erp-zbx.sh db-collect >/dev/null 2>&1' > /etc/cron.d/erp-zbx-db
+  chmod 644 /etc/cron.d/erp-zbx-db
+  echo "เก็บค่ารอบแรก (ราว 10–20 วินาที)..."
+  /usr/local/bin/erp-zbx.sh db-collect
+fi
+if [ "$SETS" = "node" ] || [ "$SETS" = "node manager" ]; then
   echo 'zabbix ALL=(root) NOPASSWD: /usr/local/bin/erp-zbx.sh' > /etc/sudoers.d/zabbix-erp
   chmod 440 /etc/sudoers.d/zabbix-erp
   visudo -cf /etc/sudoers.d/zabbix-erp >/dev/null

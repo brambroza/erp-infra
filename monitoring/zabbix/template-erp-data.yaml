@@ -1,0 +1,259 @@
+# Template สำหรับ erp-db-01 — Import ใน Zabbix: Data collection (หรือ Configuration) → Templates → Import
+# ต้องรัน scripts/50-zabbix.sh บนเครื่องก่อน · format 6.0 import ได้ทั้ง 6.0 / 6.4 / 7.0
+zabbix_export:
+  version: '6.0'
+  groups:
+  - uuid: c74cf4d2816849fa97cd3095aeba6b79
+    name: Templates/ERP
+  templates:
+  - uuid: a2466f9224274585b5b22f8d0c7235cb
+    template: ERP Data
+    name: ERP Data
+    description: 'erp-db-01: /srv, backup, SQL Server, Redis, RabbitMQ, NFS — ค่ามาจาก cron erp-zbx-db (รัน scripts/50-zabbix.sh บนเครื่องก่อน)'
+    templates:
+    - name: Linux by Zabbix agent
+    groups:
+    - name: Templates/ERP
+    items:
+    - uuid: 093451088f14415bbf1b5f820268d510
+      name: อายุของค่าที่เก็บล่าสุด
+      key: erp.db[collect_age]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: collector
+      units: s
+      triggers:
+      - uuid: e8abfe5f92dc4222bc9cb614f3476b65
+        expression: last(/ERP Data/erp.db[collect_age])>300
+        name: 'erp-db-01: เก็บค่า monitor ไม่ได้เกิน 5 นาที (cron erp-zbx-db)'
+        priority: WARNING
+        description: ดู /etc/cron.d/erp-zbx-db และรัน sudo /usr/local/bin/erp-zbx.sh db-collect
+    - uuid: c42d610934224139ba686e5b3d0c9d83
+      name: /srv (ดิสก์ iSCSI) mount อยู่
+      key: erp.db[srv_mounted]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: storage
+      triggers:
+      - uuid: 9bee9a89bcb4445d8005c13975c15811
+        expression: last(/ERP Data/erp.db[srv_mounted])=0
+        name: /srv ไม่ได้ mount บน erp-db-01 — ฐานข้อมูลและไฟล์ไม่อยู่
+        priority: DISASTER
+        description: findmnt /srv · เช็ก NAS / iSCSI
+    - uuid: 2b4beccb5123434fad2e9db15403fc25
+      name: อายุ backup ล่าสุด
+      key: erp.db[backup_age_h]
+      delay: 10m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: backup
+      units: h
+      triggers:
+      - uuid: 9268d6da4cfb415e88648449ff3c7482
+        expression: last(/ERP Data/erp.db[backup_age_h])>26 or last(/ERP Data/erp.db[backup_age_h])<0
+        name: backup DB ไม่ได้ทำเกิน 26 ชั่วโมง (อายุ {ITEM.LASTVALUE})
+        priority: HIGH
+        description: tail /var/log/mssql-backup.log
+    - uuid: 9e1805018ed44dc1ab79acb2dd97f0c6
+      name: ขนาด backup ล่าสุด
+      key: erp.db[backup_size_mb]
+      delay: 10m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: backup
+      units: MB
+      triggers:
+      - uuid: 7c821d0746f84885a9ef9449acc7ed80
+        expression: last(/ERP Data/erp.db[backup_size_mb])<last(/ERP Data/erp.db[backup_size_mb],#2)*0.5
+        name: ไฟล์ backup เล็กลงเกินครึ่งจากรอบก่อน — ตรวจว่า backup สมบูรณ์
+        priority: WARNING
+    - uuid: debb74ac4d23451ea1d5f1d5e5d161e8
+      name: container SQL Server ที่รัน
+      key: erp.db[c_mssql]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: mssql
+      triggers:
+      - uuid: baf7877e3d5d4876a0176aecb6e4c7d0
+        expression: last(/ERP Data/erp.db[c_mssql])=0
+        name: SQL Server container ไม่ทำงาน
+        priority: DISASTER
+        description: cd /opt/erp-infra && sudo data/dc.sh ps / logs mssql
+    - uuid: 790008c951324ec5b55e5d6a8da8c362
+      name: GoAlongDatabase ONLINE
+      key: erp.db[mssql_online]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: mssql
+      triggers:
+      - uuid: 4d90f6f1c5b244549878cb29b1db9562
+        expression: last(/ERP Data/erp.db[mssql_online])=0 and last(/ERP Data/erp.db[c_mssql])>0
+        name: GoAlongDatabase ไม่ ONLINE หรือ login sa ไม่ได้
+        priority: DISASTER
+    - uuid: 57521bb83a23482f99fc71369f74b621
+      name: ขนาดไฟล์ข้อมูล GoAlongDatabase
+      key: erp.db[mssql_data_mb]
+      delay: 10m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: mssql
+      units: MB
+      triggers:
+      - uuid: 0dadaec4156b462a844618927bb36829
+        expression: last(/ERP Data/erp.db[mssql_data_mb])>8192
+        name: DB ใกล้เพดาน SQL Server Express 10 GB ({ITEM.LASTVALUE})
+        priority: WARNING
+        description: วางแผนย้ายเป็น Standard หรือ archive ข้อมูล
+      - uuid: 42084baac18943fe91c91b8badc56abf
+        expression: last(/ERP Data/erp.db[mssql_data_mb])>9728
+        name: DB เกือบเต็มเพดาน Express 10 GB ({ITEM.LASTVALUE}) — จะเขียนไม่ได้
+        priority: HIGH
+    - uuid: 27f7f6d269e34bffb0c28c98e86d8cd9
+      name: container Redis ที่รัน
+      key: erp.db[c_redis]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: redis
+      triggers:
+      - uuid: 5a8ad86fe6ea4268bcb3b3bd62365809
+        expression: last(/ERP Data/erp.db[c_redis])=0
+        name: Redis container ไม่ทำงาน (SignalR / lock ของแอปพัง)
+        priority: HIGH
+    - uuid: a17759d477c64ca8887e44be9683e910
+      name: Redis ตอบ PING
+      key: erp.db[redis_ping]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: redis
+      triggers:
+      - uuid: f610434352bc4dcaa2d3083374bd002e
+        expression: last(/ERP Data/erp.db[redis_ping])=0 and last(/ERP Data/erp.db[c_redis])>0
+        name: Redis ไม่ตอบ PING
+        priority: HIGH
+    - uuid: f9dc08d14d764eb0af0e20962aad80da
+      name: Redis ใช้หน่วยความจำ (% ของ maxmemory)
+      key: erp.db[redis_mem_pct]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: redis
+      units: '%'
+      triggers:
+      - uuid: 3174acbd0d514e54a9b211966c86498f
+        expression: min(/ERP Data/erp.db[redis_mem_pct],10m)>90
+        name: Redis ใช้หน่วยความจำเกิน 90% มา 10 นาที
+        priority: WARNING
+    - uuid: 5311cff7581f4b93a985d77545813b7c
+      name: container RabbitMQ ที่รัน
+      key: erp.db[c_rabbitmq]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: rabbitmq
+      triggers:
+      - uuid: 5ebf583c56964f4d9715be6f4bf4afdd
+        expression: last(/ERP Data/erp.db[c_rabbitmq])=0
+        name: RabbitMQ container ไม่ทำงาน
+        priority: HIGH
+    - uuid: 5b172c7d82994efb86f455b31c06b2ac
+      name: RabbitMQ ทำงาน
+      key: erp.db[rabbit_ok]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: rabbitmq
+      triggers:
+      - uuid: 4c9c4e345fc9474a8fdbbe9caf9a1454
+        expression: last(/ERP Data/erp.db[rabbit_ok])=0 and last(/ERP Data/erp.db[c_rabbitmq])>0
+        name: RabbitMQ ไม่ตอบ
+        priority: HIGH
+    - uuid: ef9b2626a3db421a8fd2fa91a10445e8
+      name: RabbitMQ alarm (memory / disk)
+      key: erp.db[rabbit_alarm]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: rabbitmq
+      triggers:
+      - uuid: de3725b75f5440228efb265ffe31f169
+        expression: last(/ERP Data/erp.db[rabbit_alarm])=1
+        name: RabbitMQ มี alarm — publisher ถูก block (log ของแอปจะค้าง)
+        priority: HIGH
+        description: http://192.168.88.12:15672 → Overview
+    - uuid: 9342568faf994acfbc0ea3bf1867a7ea
+      name: 'RabbitMQ: ข้อความในคิวที่ยาวที่สุด'
+      key: erp.db[rabbit_max_queue]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: rabbitmq
+      triggers:
+      - uuid: 3c7d9555d74c46d7b6e5b2610a36d41b
+        expression: min(/ERP Data/erp.db[rabbit_max_queue],15m)>5000
+        name: 'RabbitMQ: คิวค้างเกิน 5,000 ข้อความมา 15 นาที'
+        priority: WARNING
+        description: หา consumer ที่หยุด (Queues ใน UI)
+    - uuid: d2e0a14dfaac4f83bed5cb680c71c2f5
+      name: NFS server ทำงาน
+      key: erp.db[nfs_server]
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: nfs
+      triggers:
+      - uuid: 26520a6ad0874b218f50dc9eb2b862cc
+        expression: last(/ERP Data/erp.db[nfs_server])=0
+        name: NFS server หยุด — อัปโหลดไฟล์ของแอปพัง
+        priority: HIGH
+        description: sudo systemctl status nfs-server
+    - uuid: 61d096f3c4ff40f8b616b0b178d5e2f0
+      name: export /srv/nfs/erp-files อยู่
+      key: erp.db[nfs_export]
+      delay: 5m
+      history: 30d
+      value_type: FLOAT
+      tags:
+      - tag: component
+        value: nfs
+      triggers:
+      - uuid: c1ce6da406dc4db0bf7cf37b2498e0d6
+        expression: last(/ERP Data/erp.db[nfs_export])=0 and last(/ERP Data/erp.db[nfs_server])=1
+        name: NFS ไม่ได้ export /srv/nfs/erp-files
+        priority: HIGH
+        description: sudo exportfs -ra

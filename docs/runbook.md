@@ -173,3 +173,9 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 2. Zabbix: Import `monitoring/zabbix/template-erp-swarm.yaml`
 3. host `erp-app-01` ใส่ `ERP Swarm node` + `ERP Swarm manager` · host `erp-app-02` ใส่ `ERP Swarm node`
 4. ระหว่าง drain เครื่องเพื่อซ่อม trigger "ไม่มี container ของ erp" จะเด้ง — ปิดชั่วคราวได้ (Maintenance)
+
+### Data (erp-db-01)
+
+1. บนเครื่อง: pull repo → `sudo scripts/50-zabbix.sh` (ติดตั้ง cron `/etc/cron.d/erp-zbx-db` เก็บค่าทุกนาทีลง `/var/lib/erp-zbx/db.env` — ไฟล์นี้ไม่มีรหัสผ่าน)
+2. Zabbix: Import `monitoring/zabbix/template-erp-data.yaml` → host `erp-db-01` (192.168.88.12:10050) ใส่ `ERP Data`
+3. ดูค่าทั้งหมดบนเครื่อง: `cat /var/lib/erp-zbx/db.env`
