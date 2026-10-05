@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy / อัปเดต stack "erp" — รันบน vm-service-1 (Swarm manager) เท่านั้น
+# deploy / อัปเดต stack "erp" — รันบน erp-app-01 (Swarm manager) เท่านั้น
 set -euo pipefail
 cd "$(dirname "$0")"
 

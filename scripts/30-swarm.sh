@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# vm-service-1: sudo ./30-swarm.sh init
-# vm-service-2: sudo ./30-swarm.sh join <worker-token>
+# erp-app-01: sudo ./30-swarm.sh init
+# erp-app-02: sudo ./30-swarm.sh join <worker-token>
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env

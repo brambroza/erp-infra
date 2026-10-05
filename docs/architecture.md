@@ -8,30 +8,33 @@
 
 ```mermaid
 flowchart LR
-    U[ผู้ใช้<br/>HTTPS 443] --> R[Router<br/>port forward 443 → VIP]
-    R --> VIP((VIP))
-    subgraph GW[Gateway]
-        G1[gw-1 · MASTER<br/>Nginx + keepalived]
-        G5[gw-2 · BACKUP<br/>Nginx + keepalived]
-        G1 <-. VRRP .-> G5
+    U[ผู้ใช้ / LINE webhook<br/>HTTPS 443] --> CF[Cloudflare<br/>proxied] --> R[Router<br/>port forward 80/443 → VIP]
+    R --> VIP((VIP<br/>192.168.88.100))
+    subgraph GW[Gateway · nginx + keepalived]
+        G1[erp-gw-01 · .101<br/>MASTER 110]
+        G2[erp-gw-02 · .102<br/>BACKUP 100]
+        G1 <-. VRRP unicast .-> G2
     end
     VIP --> G1
-    VIP -.-> G5
-    subgraph SW[Swarm cluster]
-        S1[vm-service-1 · manager<br/>erpapp :8284<br/>erpapi :6334 / :6344<br/>chat-api :6335<br/>ticker ตัวหลัก]
-        S2[vm-service-2 · worker<br/>erpapp :8284<br/>erpapi :6334 / :6344<br/>chat-api :6335<br/>ticker สำรอง]
+    VIP -.-> G2
+    subgraph SW[Docker Swarm · stack erp]
+        S1[erp-app-01 · .111 · manager<br/>erpapp :8284<br/>erpapi :6334 / :6344<br/>chat-api :6335<br/>ticker ×1 ทั้ง cluster]
+        S2[erp-app-02 · .112 · worker<br/>erpapp :8284<br/>erpapi :6334 / :6344<br/>chat-api :6335]
     end
     G1 --> S1
     G1 --> S2
-    subgraph D[vm-data-4]
-        SQL[(SQL Server)]
-        RD[(Redis)]
-        MQ[(RabbitMQ)]
-        NFS[(NFS · Data API files)]
+    subgraph D[erp-db-01 · 192.168.88.12]
+        SQL[(SQL Server 2022 Express :1433)]
+        RD[(Redis :6379)]
+        MQ[(RabbitMQ :5672)]
+        NFS[(NFS erp-files :2049)]
     end
     S1 --> D
     S2 --> D
-    J[vm-deploy :8110] -- ssh deploy --> S1
+    G1 -.-> L[เครื่องเดิม .11<br/>app :3030 · n8n :5678<br/>Zabbix .21]
+    GH[GitHub push main] --> GA[GitHub Actions] --> DH[Docker Hub<br/>:latest + :sha-xxxxxxx]
+    DH -. pull .-> SW
+    J[erp-ci-01 · .131<br/>Jenkins :8110] -- ssh deploy --> S1
 ```
 
 ## Routing ที่ gateway
@@ -51,7 +54,7 @@ port แบบ **host mode** ทำให้ Nginx ส่งผู้ใช้�
 ## Cloudflare และ VIP
 
 ```
-ผู้ใช้ → Cloudflare (proxied) → public IP ของ router :443 → dst-nat → VIP 192.168.88.100 → gw-1 / gw-2
+ผู้ใช้ → Cloudflare (proxied) → public IP ของ router :443 → dst-nat → VIP 192.168.88.100 → erp-gw-01 / erp-gw-02
 คนในออฟฟิศ → DNS ภายใน → VIP 192.168.88.100 ตรง (ไม่อ้อมออก internet)
 ```
 
@@ -65,19 +68,22 @@ port แบบ **host mode** ทำให้ Nginx ส่งผู้ใช้�
 ## Flow
 
 ### ปกติ
-ผู้ใช้ → Router → VIP (gw-1) → vm-service-1 หรือ 2 → vm-data-4
+ผู้ใช้ → Cloudflare → Router → VIP (erp-gw-01) → erp-app-01 หรือ erp-app-02 → erp-db-01
 โหลดแบ่งครึ่งระหว่าง 2 เครื่อง ส่วน chat และ SignalR ผู้ใช้คนเดิมไปเครื่องเดิมเสมอ
 
-### gw-1 ล่ม
-keepalived บน gw-2 ไม่ได้ยินสัญญาณจาก gw-1 จึงรับ VIP ไปเองภายใน 3–5 วินาที ไม่ต้องแก้ Router หรือ DNS
-เมื่อ gw-1 กลับมา VIP ย้ายกลับเอง ส่วน WebSocket ที่หลุดจะ reconnect เอง
+### erp-gw-01 ล่ม
+keepalived บน erp-gw-02 ไม่ได้ยินสัญญาณจาก erp-gw-01 จึงรับ VIP ไปเอง (nginx ถูกเช็กทุก 1 วินาที ล้ม 2 ครั้ง = ย้าย ใช้เวลาราว 2–3 วินาที) ไม่ต้องแก้ Router หรือ DNS
+เมื่อ erp-gw-01 กลับมา VIP ย้ายกลับเอง ส่วน WebSocket ที่หลุดจะ reconnect เอง
 
-### vm-service-1 ล่ม
-Nginx ตัดเครื่องที่ไม่ตอบออก ส่งงานทั้งหมดไป vm-service-2 และ ticker ย้ายไป vm-service-2
-ระหว่างนี้ deploy ไม่ได้จนกว่า vm-service-1 (manager) กลับมา
+### erp-app-01 ล่ม
+Nginx ตัดเครื่องที่ไม่ตอบออก ส่งงานทั้งหมดไป erp-app-02 และ ticker ย้ายไป erp-app-02
+ระหว่างนี้ deploy ไม่ได้จนกว่า erp-app-01 (manager) กลับมา
 
 ### Deploy
-vm-deploy build + push image → ssh vm-service-1 → แก้ `versions.env` → `docker stack deploy` → Swarm อัปเดตทีละเครื่อง
+push `main` ของแอป → GitHub Actions build แล้ว push image `:latest` + `:sha-<7 ตัว>` ขึ้น Docker Hub
+→ กด Build job `deploy-<แอป>` บน Jenkins (erp-ci-01) → ssh `deploy@erp-app-01` → `docker pull` แล้วอ่าน digest
+→ แก้ `versions.env` เป็น `latest@sha256:<digest>` → `deploy-stack.sh` → `wait-converge.sh` รอจนอัปเดตเสร็จ → แจ้ง Slack
+`deploy-stack.sh` อ่าน `STACK_MODE` ใน `versions.env`: `test` (ค่าเริ่มต้น) ใส่ `stack.test.yml` บล็อก LINE / push / Gmail ออก, `live` ใช้ตอน cutover
 ถ้า health ไม่ผ่านจะ rollback เองและ job Jenkins ขึ้น fail
 
 ## Resource
@@ -87,33 +93,34 @@ Spec VM = ค่าที่ได้ + OS (RAM 1 GB, disk 20 GB) แล้ว�
 
 | VM | Disk ใช้ (+40%) | RAM ใช้ (+20%) | vCPU | RAM แนะนำ | Disk แนะนำ |
 |---|---:|---:|---:|---:|---:|
-| gw-1 | – | 0.1 GB | 1 | 2 GB | 20 GB |
-| gw-2 | – | 0.1 GB | 1 | 2 GB | 20 GB |
-| vm-service-1 | 4.6 GB | 4.3 GB | 4 | 8 GB | 40 GB |
-| vm-service-2 | 4.6 GB | 4.3 GB | 4 | 8 GB | 40 GB |
-| vm-data-4 | 37.9 GB | 1.3 GB | 4 | 4 GB (8 GB ถ้า DB โต) | 60 GB + backup 60 GB |
-| vm-deploy | 1.9 GB | 3.0 GB | 2 | 4 GB | 40 GB |
+| erp-gw-01 | – | 0.1 GB | 1 | 2 GB | 20 GB |
+| erp-gw-02 | – | 0.1 GB | 1 | 2 GB | 20 GB |
+| erp-app-01 | 4.6 GB | 4.3 GB | 4 | 8 GB | 40 GB |
+| erp-app-02 | 4.6 GB | 4.3 GB | 4 | 8 GB | 40 GB |
+| erp-db-01 | 37.9 GB | 1.3 GB | 4 | 4 GB (8 GB ถ้า DB โต) | 60 GB + backup 60 GB |
+| erp-ci-01 | 1.9 GB | 3.0 GB | 2 | 4 GB | 40 GB |
 | **รวม** | **49.0 GB** | **13.1 GB** | **16** | **28 GB** | **280 GB** |
 
 ค่าที่วัดมาราย service
 
 | VM | Service | Storage | Image | RAM |
 |---|---|---:|---:|---:|
-| vm-service-1/2 | erpapp :8284 | 500 MB | 204 MB | 2 GB |
-| | erpapi :6334, :6344 | (อยู่ที่ vm-data-4) | 407 MB | 1 GB |
+| erp-app-01/2 | erpapp :8284 | 500 MB | 204 MB | 2 GB |
+| | erpapi :6334, :6344 | (อยู่ที่ erp-db-01) | 407 MB | 1 GB |
 | | chat-api :6335 | 800 MB | 873 MB | 500 MB |
 | | ticker | 200 MB | ~400 MB (ประมาณ) | 100 MB |
-| vm-data-4 | SQL Server | 20 GB | 2 GB | 1 GB |
+| erp-db-01 | SQL Server | 20 GB | 2 GB | 1 GB |
 | | Redis | 1 GB | 117 MB | 9 MB |
 | | RabbitMQ | 2 GB | 267 MB | 81 MB |
 | | Data API files (NFS) | 1.7 GB | – | – |
-| vm-deploy | Jenkins :8110 | 904 MB | 470 MB | 2.5 GB |
-| gw-1 / gw-2 | Nginx + keepalived | – | – | 100 MB |
+| erp-ci-01 | Jenkins :8110 | 904 MB | 470 MB | 2.5 GB |
+| erp-gw-01 / erp-gw-02 | Nginx + keepalived | – | – | 100 MB |
 
-ใน `stack.yml` ตั้ง erpapp, erpapi และ chat-api เป็น `mode: global` (เครื่องละ 1 ตัว) ถ้าเครื่องหนึ่งล่ม Swarm จะไม่ย้ายตัวที่สองมาซ้อน
+ใน `stack.yml` erpapp เป็น `mode: global` (เครื่องละ 1 ตัว) ส่วน erpapi และ chat-api เป็น `mode: replicated` จำนวนตาม `ERPAPI_REPLICAS` / `CHATAPI_REPLICAS`
+(ตั้ง 2 ทั้งคู่) กับ `max_replicas_per_node: 1` ถ้าเครื่องหนึ่งล่ม Swarm จะไม่ย้ายตัวที่สองมาซ้อน เพราะ host port ซ้ำกันไม่ได้
 เครื่องที่เหลือจึงใช้ RAM เท่าเดิม แต่ต้องรับโหลดทั้งหมดคนเดียว
 
 ## จุดเสียจุดเดียวที่ยังเหลือ
 
-- **vm-data-4:** ถ้าล่ม ระบบล่มทั้งหมด ต้องมี backup นอกเครื่องและซ้อม restore
-- **Swarm manager บน vm-service-1:** ถ้าล่ม แอปยังทำงานบน vm-service-2 แต่ deploy ไม่ได้
+- **erp-db-01:** ถ้าล่ม ระบบล่มทั้งหมด ต้องมี backup นอกเครื่องและซ้อม restore
+- **Swarm manager บน erp-app-01:** ถ้าล่ม แอปยังทำงานบน erp-app-02 แต่ deploy ไม่ได้

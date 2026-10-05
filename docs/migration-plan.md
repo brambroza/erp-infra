@@ -6,10 +6,10 @@
 |---|---|---|---|
 | 0 | เช็กเครื่องเดิม + สำรองของที่เสี่ยงหาย | ไม่กระทบ | ครึ่งวัน |
 | 1 | สร้าง VM template แล้ว clone เป็น 6 เครื่อง | ไม่กระทบ | ครึ่งวัน |
-| 2 | vm-data-4 + ซ้อม restore DB / ไฟล์ | ไม่กระทบ | 1 วัน |
-| 3 | vm-service-1/2 (Swarm) + deploy แอปชี้ DB ใหม่ | ไม่กระทบ | 1 วัน |
-| 4 | gw-1/gw-2 + VIP + cert | ไม่กระทบ | ครึ่งวัน |
-| 5 | vm-deploy (Jenkins) | ไม่กระทบ | ครึ่งวัน |
+| 2 | erp-db-01 + ซ้อม restore DB / ไฟล์ | ไม่กระทบ | 1 วัน |
+| 3 | erp-app-01/2 (Swarm) + deploy แอปชี้ DB ใหม่ | ไม่กระทบ | 1 วัน |
+| 4 | erp-gw-01/erp-gw-02 + VIP + cert | ไม่กระทบ | ครึ่งวัน |
+| 5 | erp-ci-01 (Jenkins) | ไม่กระทบ | ครึ่งวัน |
 | 6 | ทดสอบ failover + ทดสอบแอปทุกเมนู | ไม่กระทบ | 1–2 วัน |
 | 7 | ตัดระบบ | **หยุดระบบ 30–60 นาที** | นอกเวลางาน |
 | 8 | เก็บกวาด | ไม่กระทบ | 1 สัปดาห์หลังตัด |
@@ -102,11 +102,11 @@ sudo git clone https://github.com/brambroza/erp-infra /opt/erp-infra
 ```
 
 แล้วรัน `scripts/00-common.sh <hostname> [--docker]` ตาม runbook ข้อ 1
-vm-data-4 ให้เพิ่ม disk แยก 2 ลูก (data และ backup) mount ที่ `/srv` และ `/srv/mssql/backup`
+erp-db-01 ให้เพิ่ม disk แยก 2 ลูก (data และ backup) mount ที่ `/srv` และ `/srv/mssql/backup`
 
 ---
 
-## Phase 2 — vm-data-4 (ทำก่อนเพราะทุกอย่างพึ่ง DB)
+## Phase 2 — erp-db-01 (ทำก่อนเพราะทุกอย่างพึ่ง DB)
 
 ```bash
 sudo /opt/erp-infra/scripts/20-data.sh        # รอบแรก: สร้าง /opt/data/.env
@@ -122,10 +122,10 @@ sudo /opt/erp-infra/scripts/20-data.sh        # รอบสอง: start SQL Se
 docker exec -e SQLCMDPASSWORD="$SA_PASS" sqlserverhighperf /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q \
   "BACKUP DATABASE [CRMDB] TO DISK='/var/opt/mssql/data/CRMDB_full.bak' WITH COMPRESSION, CHECKSUM, INIT"
 docker cp sqlserverhighperf:/var/opt/mssql/data/CRMDB_full.bak .
-scp CRMDB_full.bak root@vm-data-4:/srv/mssql/backup/
+scp CRMDB_full.bak root@erp-db-01:/srv/mssql/backup/
 ```
 
-บน vm-data-4:
+บน erp-db-01:
 
 ```bash
 /opt/erp-infra/data/dc.sh exec -e SQLCMDPASSWORD="$SA" mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q \
@@ -141,7 +141,7 @@ scp CRMDB_full.bak root@vm-data-4:/srv/mssql/backup/
 
 ```bash
 # จากเครื่องเดิม (path ดูจาก mounts.txt)
-sudo rsync -aH --numeric-ids <path volume เดิม>/ root@vm-data-4:/srv/nfs/erp-files/
+sudo rsync -aH --numeric-ids <path volume เดิม>/ root@erp-db-01:/srv/nfs/erp-files/
 ```
 
 รอบนี้ใช้เวลาตามขนาดไฟล์ (1.7 GB) รอบหลัง ๆ จะ copy เฉพาะไฟล์ที่เปลี่ยน
@@ -149,8 +149,8 @@ sudo rsync -aH --numeric-ids <path volume เดิม>/ root@vm-data-4:/srv/nfs
 ### RabbitMQ
 
 ```bash
-scp /root/rabbit-defs.json root@vm-data-4:/tmp/
-# vm-data-4
+scp /root/rabbit-defs.json root@erp-db-01:/tmp/
+# erp-db-01
 docker cp /tmp/rabbit-defs.json data-rabbitmq-1:/tmp/defs.json
 /opt/erp-infra/data/dc.sh exec rabbitmq rabbitmqctl import_definitions /tmp/defs.json
 ```
@@ -162,18 +162,18 @@ docker cp /tmp/rabbit-defs.json data-rabbitmq-1:/tmp/defs.json
 
 ---
 
-## Phase 3 — vm-service-1 / vm-service-2
+## Phase 3 — erp-app-01 / erp-app-02
 
 ```bash
-# vm-service-1
+# erp-app-01
 sudo /opt/erp-infra/scripts/30-swarm.sh init
-# vm-service-2
+# erp-app-02
 sudo /opt/erp-infra/scripts/30-swarm.sh join <token>
-# vm-service-1
-docker node update --label-add role=app vm-service-2
+# erp-app-01
+docker node update --label-add role=app erp-app-02
 ```
 
-env ของแต่ละแอป: เอาจาก `env/*.env` ใน audit แล้วเปลี่ยน host ของ DB/Redis/RabbitMQ เป็น vm-data-4
+env ของแต่ละแอป: เอาจาก `env/*.env` ใน audit แล้วเปลี่ยน host ของ DB/Redis/RabbitMQ เป็น erp-db-01
 
 ```bash
 cd /opt/erp-infra/stacks/erp
@@ -188,23 +188,23 @@ docker login
 ทดสอบตรงที่เครื่อง (ยังไม่ผ่าน gateway):
 
 ```bash
-curl -I http://vm-service-1:8284/      # erpapp
-curl -I http://vm-service-2:6334/      # erpapi
+curl -I http://erp-app-01:8284/      # erpapp
+curl -I http://erp-app-02:6334/      # erpapi
 ```
 
 **TICKER_REPLICAS ต้องเป็น 0 จนถึง phase 7** ไม่อย่างนั้น job รันซ้ำกับเครื่องเดิม
 
 ---
 
-## Phase 4 — gw-1 / gw-2 + VIP
+## Phase 4 — erp-gw-01 / erp-gw-02 + VIP
 
 ```bash
 # จากเครื่องเดิม: copy cert
-for gw in gw-1 gw-2; do scp /root/nginx-ssl.tgz root@$gw:/root/ && ssh root@$gw 'mkdir -p /etc/nginx && tar xzf /root/nginx-ssl.tgz -C /etc/nginx'; done
+for gw in erp-gw-01 erp-gw-02; do scp /root/nginx-ssl.tgz root@$gw:/root/ && ssh root@$gw 'mkdir -p /etc/nginx && tar xzf /root/nginx-ssl.tgz -C /etc/nginx'; done
 
-# gw-1 และ gw-2
+# erp-gw-01 และ erp-gw-02
 sudo cp /opt/erp-infra/secrets.env.example /opt/erp-infra/secrets.env && sudo vi /opt/erp-infra/secrets.env
-sudo /opt/erp-infra/scripts/10-gateway.sh gw-1       # บน gw-2 ใช้ gw-2
+sudo /opt/erp-infra/scripts/10-gateway.sh erp-gw-01       # บน erp-gw-02 ใช้ erp-gw-02
 ```
 
 ทดสอบโดยยังไม่เปลี่ยน router: บนเครื่องของผู้ทดสอบ แก้ `/etc/hosts` (Windows: `C:\Windows\System32\drivers\etc\hosts`)
@@ -217,7 +217,7 @@ sudo /opt/erp-infra/scripts/10-gateway.sh gw-1       # บน gw-2 ใช้ gw-
 
 ---
 
-## Phase 5 — vm-deploy (Jenkins)
+## Phase 5 — erp-ci-01 (Jenkins)
 
 ```bash
 # วาง jenkins_home เดิม
@@ -225,7 +225,7 @@ sudo mkdir -p /srv/jenkins_home && sudo tar xzf /root/jenkins_home.tgz -C /srv/j
 sudo /opt/erp-infra/scripts/40-jenkins.sh
 ```
 
-- เพิ่ม credential `swarm-manager-ssh` (key ของ user `deploy` บน vm-service-1)
+- เพิ่ม credential `swarm-manager-ssh` (key ของ user `deploy` บน erp-app-01)
 - สร้าง job `erp-deploy` จาก `jenkins/Jenkinsfile.deploy`
 - ปรับ job build เดิมให้ push tag เลข build แล้วเรียก `erp-deploy` (ตัวอย่าง `jenkins/Jenkinsfile.build.example`)
 - **ปิด job deploy เดิมบน Jenkins ตัวเก่า** ระหว่างนี้ ไม่อย่างนั้นมีคน deploy ไปเครื่องเดิมโดยไม่รู้ตัว
@@ -239,11 +239,11 @@ sudo /opt/erp-infra/scripts/40-jenkins.sh
 - [ ] ตารางทดสอบ failover ใน runbook ข้อ 6 ผ่านทุกข้อ
 - [ ] login, เมนูหลัก, upload/download ไฟล์, แจ้งเตือน (SignalR), chat, LINE webhook
 - [ ] ผู้ใช้ 2 คนต่อคนละเครื่อง (ดู `upstream_addr` ใน log ของ gw) แล้วส่งแจ้งเตือนหากันได้ ถ้าไม่ได้ = ยังไม่ได้ทำ Redis backplane ในโค้ด
-- [ ] backup cron บน vm-data-4 ทำงานและ restore ลง DB ทดสอบได้
+- [ ] backup cron บน erp-db-01 ทำงานและ restore ลง DB ทดสอบได้
 - [ ] Zabbix เห็นครบ 6 เครื่อง
 
 ถ้าโค้ดยังไม่มี Redis backplane / socket.io adapter ให้ตัดระบบแบบเครื่องเดียวก่อน:
-`docker node update --availability drain vm-service-2` แล้วค่อยเปิดเครื่องที่สองหลังแก้โค้ด
+`docker node update --availability drain erp-app-02` แล้วค่อยเปิดเครื่องที่สองหลังแก้โค้ด
 
 ---
 
@@ -256,7 +256,7 @@ sudo /opt/erp-infra/scripts/40-jenkins.sh
 ```sql
 -- เครื่องเดิม
 BACKUP DATABASE [CRMDB] TO DISK='/var/opt/mssql/data/CRMDB_full.bak' WITH COMPRESSION, CHECKSUM, INIT;
--- vm-data-4 (ทับ DB ทดสอบ)
+-- erp-db-01 (ทับ DB ทดสอบ)
 RESTORE DATABASE [CRMDB] FROM DISK='/var/opt/mssql/backup/CRMDB_full.bak'
 WITH MOVE ..., NORECOVERY, REPLACE;
 ```
@@ -269,9 +269,9 @@ WITH MOVE ..., NORECOVERY, REPLACE;
 |---|---|
 | T+0 | ประกาศปิดปรับปรุง หยุด go-crmapi24, go-chat-api, go-ticker-job, go-crmapp24 บนเครื่องเดิม (`docker stop`) |
 | T+2 | `BACKUP DATABASE [CRMDB] TO DISK='...CRMDB_diff.bak' WITH DIFFERENTIAL, COMPRESSION, CHECKSUM` |
-| T+5 | copy diff ไป vm-data-4 แล้ว `RESTORE DATABASE [CRMDB] FROM DISK='...CRMDB_diff.bak' WITH RECOVERY` |
+| T+5 | copy diff ไป erp-db-01 แล้ว `RESTORE DATABASE [CRMDB] FROM DISK='...CRMDB_diff.bak' WITH RECOVERY` |
 | T+5 | คู่ขนาน: `rsync` ไฟล์ Data API รอบสุดท้าย, เช็ก queue RabbitMQ เดิมว่าง |
-| T+15 | vm-service-1: `TICKER_REPLICAS=1` ใน versions.env แล้ว `./deploy-stack.sh` |
+| T+15 | erp-app-01: `TICKER_REPLICAS=1` ใน versions.env แล้ว `./deploy-stack.sh` |
 | T+20 | ทดสอบผ่าน `/etc/hosts` ชี้ VIP: login, ข้อมูลล่าสุดตรง, upload, แจ้งเตือน |
 | T+30 | router: เปลี่ยน port forward 80/443 ไปที่ VIP · DNS ภายในชี้ VIP |
 | T+35 | ทดสอบจากข้างนอก (มือถือ 4G) และจากในออฟฟิศ |

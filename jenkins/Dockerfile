@@ -1,4 +1,4 @@
-# Jenkins LTS + docker cli สำหรับ build image ผ่าน docker socket ของ vm-deploy
+# Jenkins LTS + docker cli สำหรับ build image ผ่าน docker socket ของ erp-ci-01
 FROM jenkins/jenkins:lts-jdk17
 
 USER root

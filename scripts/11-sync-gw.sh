@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# รันบน gw-1 หลังแก้ config ใน repo
-#   ./11-sync-gw.sh          sync config ไป gw-2
+# รันบน erp-gw-01 หลังแก้ config ใน repo
+#   ./11-sync-gw.sh          sync config ไป erp-gw-02
 #   ./11-sync-gw.sh --cert   sync config + cert (หลังต่ออายุ wildcard)
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"

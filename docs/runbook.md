@@ -13,8 +13,8 @@ script อ่านอย่างเดียว ได้ไฟล์ `/root/l
 |---|---|
 | `host.txt` (IP, interface) | `inventory.env` (`LEGACY_IP`, `IFACE`) |
 | `image-of-each.txt` | `stacks/erp/versions.env` (tag ที่รันอยู่จริง) |
-| `mounts.txt`, `volume-sizes.txt` | path ของ volume erpapi ใน `stacks/erp/stack.yml` และขนาด disk ของ vm-data-4 |
-| `env/*.env` | `stacks/erp/*.env` (เปลี่ยน host ของ DB/Redis/RabbitMQ เป็น vm-data-4) |
+| `mounts.txt`, `volume-sizes.txt` | path ของ volume erpapi ใน `stacks/erp/stack.yml` และขนาด disk ของ erp-db-01 |
+| `env/*.env` | `stacks/erp/*.env` (เปลี่ยน host ของ DB/Redis/RabbitMQ เป็น erp-db-01) |
 | `mssql.txt`, `redis.txt`, `rabbitmq.txt` | tag image ใน `data/compose.yml` และ `MSSQL_PID` |
 | `legacy-ports.txt` | ยืนยันว่า 3030 / 5678 / 10053 คืออะไร |
 | `docker-stats.txt` | ยืนยัน spec RAM ของแต่ละ VM |
@@ -42,15 +42,15 @@ script อ่านอย่างเดียว ได้ไฟล์ `/root/l
 ## 1. ทุกเครื่อง
 
 ```bash
-sudo /opt/erp-infra/scripts/00-common.sh gw-1                     # gateway ไม่ต้องมี docker
-sudo /opt/erp-infra/scripts/00-common.sh gw-2
-sudo /opt/erp-infra/scripts/00-common.sh vm-service-1 --docker
-sudo /opt/erp-infra/scripts/00-common.sh vm-service-2 --docker
-sudo /opt/erp-infra/scripts/00-common.sh vm-data-4    --docker
-sudo /opt/erp-infra/scripts/00-common.sh vm-deploy   --docker
+sudo /opt/erp-infra/scripts/00-common.sh erp-gw-01                     # gateway ไม่ต้องมี docker
+sudo /opt/erp-infra/scripts/00-common.sh erp-gw-02
+sudo /opt/erp-infra/scripts/00-common.sh erp-app-01 --docker
+sudo /opt/erp-infra/scripts/00-common.sh erp-app-02 --docker
+sudo /opt/erp-infra/scripts/00-common.sh erp-db-01    --docker
+sudo /opt/erp-infra/scripts/00-common.sh erp-ci-01   --docker
 ```
 
-## 2. vm-data-4
+## 2. erp-db-01
 
 ```bash
 sudo /opt/erp-infra/scripts/20-data.sh          # รอบแรกจะสร้าง /opt/data/.env ให้แก้รหัสผ่าน
@@ -70,21 +70,21 @@ WITH MOVE 'CRMDB' TO '/var/opt/mssql/data/CRMDB.mdf',
 copy ไฟล์ Data API (volume ของ go-crmapi24) จากเครื่องเดิม:
 
 ```bash
-sudo rsync -aH --numeric-ids <path volume เดิม>/ root@vm-data-4:/srv/nfs/erp-files/
+sudo rsync -aH --numeric-ids <path volume เดิม>/ root@erp-db-01:/srv/nfs/erp-files/
 ```
 
 ## 3. Swarm
 
 ```bash
-# vm-service-1
+# erp-app-01
 sudo /opt/erp-infra/scripts/30-swarm.sh init
-# vm-service-2 (ใช้ token จากคำสั่งบน)
+# erp-app-02 (ใช้ token จากคำสั่งบน)
 sudo /opt/erp-infra/scripts/30-swarm.sh join SWMTKN-1-xxxx
-# vm-service-1
-docker node update --label-add role=app vm-service-2
+# erp-app-01
+docker node update --label-add role=app erp-app-02
 ```
 
-deploy ครั้งแรก (บน vm-service-1):
+deploy ครั้งแรก (บน erp-app-01):
 
 ```bash
 cd /opt/erp-infra/stacks/erp
@@ -101,27 +101,27 @@ docker stack ps erp --format 'table {{.Name}}\t{{.Node}}\t{{.CurrentState}}'
 
 ```bash
 # จากเครื่องเดิม copy wildcard cert ไป gw ทั้งสอง
-for gw in gw-1 gw-2; do
+for gw in erp-gw-01 erp-gw-02; do
   ssh root@$gw 'mkdir -p /etc/nginx/ssl && chmod 700 /etc/nginx/ssl'
   scp /etc/nginx/ssl/{fullchain_nisolution.crt,star_nisolution_co_th.key,ca-bundle.crt} root@$gw:/etc/nginx/ssl/
 done
 
-# gw-1 และ gw-2
+# erp-gw-01 และ erp-gw-02
 sudo cp /opt/erp-infra/secrets.env.example /opt/erp-infra/secrets.env && sudo vi /opt/erp-infra/secrets.env
-sudo /opt/erp-infra/scripts/10-gateway.sh gw-1     # บน gw-2 ใช้ gw-2
+sudo /opt/erp-infra/scripts/10-gateway.sh erp-gw-01     # บน erp-gw-02 ใช้ erp-gw-02
 ip -br addr show                                    # เครื่องที่ถือ VIP จะเห็น VIP
 ```
 
-แก้ config ทีหลัง: แก้ใน repo บน gw-1 แล้วรัน `scripts/11-sync-gw.sh` (เพิ่ม `--cert` เมื่อเปลี่ยน cert)
+แก้ config ทีหลัง: แก้ใน repo บน erp-gw-01 แล้วรัน `scripts/11-sync-gw.sh` (เพิ่ม `--cert` เมื่อเปลี่ยน cert)
 
-## 5. vm-deploy
+## 5. erp-ci-01
 
 ```bash
 sudo /opt/erp-infra/scripts/40-jenkins.sh
 ```
 
 ย้าย `jenkins_home` จากเครื่องเดิมมาไว้ที่ `/srv/jenkins_home` ก่อน start ถ้าต้องการเก็บ job เดิม
-เพิ่ม credential `swarm-manager-ssh` (SSH key ของ user `deploy` บน vm-service-1) แล้วสร้าง job จาก `jenkins/Jenkinsfile.deploy`
+เพิ่ม credential `swarm-manager-ssh` (SSH key ของ user `deploy` บน erp-app-01) แล้วสร้าง job จาก `jenkins/Jenkinsfile.deploy`
 
 ## 6. ทดสอบก่อนเปิดใช้จริง
 
@@ -133,10 +133,10 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 
 | ทดสอบ | คำสั่ง | ผลที่ถูกต้อง |
 |---|---|---|
-| Nginx บน gw-1 ล่ม | `gw-1: sudo systemctl stop nginx` | VIP ย้ายไป gw-2 ภายใน 5 วินาที และกลับมาเมื่อ start ใหม่ |
-| gw-1 ดับทั้งเครื่อง | ปิด VM gw-1 | error ไม่เกิน 2–3 ครั้งแล้วกลับเป็นปกติ |
-| vm-service-2 ออกจาก cluster | `docker node update --availability drain vm-service-2` | ระบบตอบปกติ แล้วคืนด้วย `--availability active` |
-| vm-service-1 ดับ | ปิด VM | แอปยังตอบผ่าน vm-service-2 และ ticker ย้ายไป vm-service-2 |
+| Nginx บน erp-gw-01 ล่ม | `erp-gw-01: sudo systemctl stop nginx` | VIP ย้ายไป erp-gw-02 ภายใน 5 วินาที และกลับมาเมื่อ start ใหม่ |
+| erp-gw-01 ดับทั้งเครื่อง | ปิด VM erp-gw-01 | error ไม่เกิน 2–3 ครั้งแล้วกลับเป็นปกติ |
+| erp-app-02 ออกจาก cluster | `docker node update --availability drain erp-app-02` | ระบบตอบปกติ แล้วคืนด้วย `--availability active` |
+| erp-app-01 ดับ | ปิด VM | แอปยังตอบผ่าน erp-app-02 และ ticker ย้ายไป erp-app-02 |
 | Deploy เวอร์ชันเสีย | deploy tag ที่ health ไม่ผ่าน | Swarm rollback และ job Jenkins fail |
 | Restore DB | restore `.bak` ล่าสุดลง DB ทดสอบ | restore ผ่านและข้อมูลตรง |
 
@@ -144,11 +144,11 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 
 1. หยุด go-crmapi24, go-chat-api และ go-ticker-job บนเครื่องเดิม
 2. backup → restore SQL รอบสุดท้าย และ rsync ไฟล์ Data API รอบสุดท้าย
-3. รอให้ queue ของ RabbitMQ ว่าง แล้ว import definitions เข้า vm-data-4
+3. รอให้ queue ของ RabbitMQ ว่าง แล้ว import definitions เข้า erp-db-01
 4. ตั้ง `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh`
 5. เปลี่ยน port forward 80/443 บน Router ให้ชี้ไปที่ VIP
 6. ไล่ทดสอบตามตารางข้อ 6
-7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ gw-1/gw-2 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
+7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ erp-gw-01/erp-gw-02 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
 
 ## Rollback
 

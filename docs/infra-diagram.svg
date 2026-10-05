@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 960 520" width="960" height="520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Router → VIP (gw-1 / gw-2) → Swarm vm-service-1 / vm-service-2 → vm-data-4, vm-deploy deploy">
+<svg viewBox="0 0 1200 760" width="1200" height="760" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 / erp-gw-02) → Swarm erp-app-01 / erp-app-02 → erp-db-01; GitHub Actions → Docker Hub; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01">
   <title>ERP infra diagram</title>
   <style>
 :root, svg {
   --bg:#f2f4f6; --card:#ffffff; --fg:#15212c; --muted:#5b6976; --line:#c9d2db;
-  --blue:#1f5fbf; --blue-soft:#e3ecfa; --green:#0d7a5c; --amber:#9a5b00;
+  --blue:#1f5fbf; --blue-soft:#e3ecfa; --green:#0d7a5c; --amber:#9a5b00; --violet:#6a4bb8; --grey:#7a8590;
 }
 @media (prefers-color-scheme: dark) {
   :root, svg {
     --bg:#0d1117; --card:#161b22; --fg:#e2e8ee; --muted:#95a3b0; --line:#30363d;
-    --blue:#78a9f2; --blue-soft:#1a2a40; --green:#4fc9a1; --amber:#e8b25a;
+    --blue:#78a9f2; --blue-soft:#1a2a40; --green:#4fc9a1; --amber:#e8b25a; --violet:#b59cf0; --grey:#8b949e;
   }
 }
 .bg   { fill: var(--bg); }
@@ -17,93 +17,174 @@
 .box.gw   { stroke: var(--blue);  stroke-width: 2; }
 .box.app  { stroke: var(--green); stroke-width: 2; }
 .box.data { stroke: var(--amber); stroke-width: 2; }
+.box.ci   { stroke: var(--violet); stroke-width: 2; }
+.box.old  { stroke: var(--grey); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .zone { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 5; }
 .vip  { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.5; }
 text  { font-family: "Noto Sans Thai", "Leelawadee UI", "Sukhumvit Set", Tahoma, "Segoe UI", sans-serif; }
-.t1, .lbl, .tv { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", monospace; }
+.t1, .lbl, .tv, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", monospace; }
 .t1  { fill: var(--muted); font-size: 11px; }
 .t2  { fill: var(--fg); font-size: 14px; font-weight: 600; }
 .t3  { fill: var(--fg); font-size: 12px; }
-.tv  { fill: var(--blue); font-size: 12px; font-weight: 500; }
-.lbl { fill: var(--muted); font-size: 10.5px; }
+.mono { fill: var(--fg); font-size: 11.5px; white-space: pre; }
+.tv  { fill: var(--blue); font-size: 12px; font-weight: 600; }
+.lbl { fill: var(--muted); font-size: 10.5px; white-space: pre; }
 .ar  { stroke: var(--muted); stroke-width: 1.6; fill: none; }
 .ar.b { stroke: var(--blue); }
 .ar.g { stroke: var(--green); }
+.ar.a { stroke: var(--amber); }
+.ar.v { stroke: var(--violet); }
 .dash { stroke: var(--blue); stroke-width: 1.4; stroke-dasharray: 4 4; fill: none; }
+.dash.v { stroke: var(--violet); }
+.dash.m { stroke: var(--muted); }
 .head { fill: var(--muted); }
 .head.b { fill: var(--blue); }
 .head.g { fill: var(--green); }
+.head.a { fill: var(--amber); }
+.head.v { fill: var(--violet); }
   </style>
-  <rect class="bg" x="0" y="0" width="960" height="520" rx="12"/>
+  <rect class="bg" x="0" y="0" width="1200" height="760" rx="12"/>
   <defs>
     <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head b" d="M0 0L10 5L0 10z"/></marker>
     <marker id="mg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head g" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head a" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="mv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head v" d="M0 0L10 5L0 10z"/></marker>
     <marker id="mm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0L10 5L0 10z"/></marker>
   </defs>
 
-  <rect class="box" x="16" y="196" width="112" height="58" rx="6"/>
-  <text class="t2" x="72" y="222" text-anchor="middle">ผู้ใช้</text>
-  <text class="t1" x="72" y="241" text-anchor="middle">HTTPS :443</text>
+  <!-- ===== ฝั่งผู้ใช้ ===== -->
+  <text class="t1" x="24" y="40">INTERNET</text>
+  <rect class="box" x="24" y="120" width="156" height="56" rx="6"/>
+  <text class="t2" x="102" y="145" text-anchor="middle">ผู้ใช้ / LINE webhook</text>
+  <text class="t1" x="102" y="164" text-anchor="middle">HTTPS :443</text>
 
-  <rect class="box" x="156" y="190" width="122" height="70" rx="6"/>
-  <text class="t2" x="217" y="216" text-anchor="middle">Router</text>
-  <text class="t3" x="217" y="234" text-anchor="middle">port forward</text>
-  <text class="t1" x="217" y="250" text-anchor="middle">443 → VIP</text>
+  <rect class="box" x="24" y="216" width="156" height="56" rx="6"/>
+  <text class="t2" x="102" y="241" text-anchor="middle">Cloudflare</text>
+  <text class="t1" x="102" y="260" text-anchor="middle">proxied · Full (strict)</text>
 
-  <rect class="zone" x="304" y="80" width="190" height="300" rx="10"/>
-  <text class="t1" x="316" y="98">GATEWAY</text>
-  <rect class="vip" x="336" y="108" width="126" height="26" rx="13"/>
-  <text class="tv" x="399" y="125" text-anchor="middle">VIP (IP กลาง)</text>
-  <rect class="box gw" x="318" y="148" width="162" height="82" rx="6"/>
-  <text class="t1" x="330" y="167">gw-1 · MASTER</text>
-  <text class="t2" x="330" y="190">ตัวหลัก</text>
-  <text class="t3" x="330" y="210">Nginx + keepalived</text>
-  <rect class="box gw" x="318" y="282" width="162" height="82" rx="6"/>
-  <text class="t1" x="330" y="301">gw-2 · BACKUP</text>
-  <text class="t2" x="330" y="324">ตัวสำรอง</text>
-  <text class="t3" x="330" y="344">Nginx + keepalived</text>
-  <path class="dash" d="M399 230V282"/>
-  <text class="lbl" x="407" y="260">เช็กกันทุก 1 วิ</text>
+  <rect class="box" x="24" y="312" width="156" height="70" rx="6"/>
+  <text class="t2" x="102" y="337" text-anchor="middle">Router</text>
+  <text class="t3" x="102" y="356" text-anchor="middle">port forward 80/443</text>
+  <text class="t1" x="102" y="372" text-anchor="middle">→ VIP .100 (ตอน cutover)</text>
 
-  <rect class="zone" x="528" y="24" width="232" height="400" rx="10"/>
-  <text class="t1" x="540" y="42">SWARM CLUSTER</text>
-  <rect class="box app" x="542" y="54" width="204" height="168" rx="6"/>
-  <text class="t1" x="554" y="73">vm-service-1 · manager</text>
-  <text class="t3" x="554" y="98">erpapp ×1 · :8284</text>
-  <text class="t3" x="554" y="118">erpapi ×1 · :6334 / :6344</text>
-  <text class="t3" x="554" y="138">chat-api ×1 · :6335</text>
-  <text class="t3" x="554" y="158">ticker ×1 (ตัวเดียวทั้ง cluster)</text>
-  <text class="t1" x="554" y="200">RAM 4.3 GB · disk 4.6 GB</text>
-  <rect class="box app" x="542" y="242" width="204" height="168" rx="6"/>
-  <text class="t1" x="554" y="261">vm-service-2 · worker</text>
-  <text class="t3" x="554" y="286">erpapp ×1 · :8284</text>
-  <text class="t3" x="554" y="306">erpapi ×1 · :6334 / :6344</text>
-  <text class="t3" x="554" y="326">chat-api ×1 · :6335</text>
-  <text class="t3" x="554" y="346">ticker สำรอง (ตัวหลักล่มใช้ตัวนี้)</text>
-  <text class="t1" x="554" y="388">RAM 4.3 GB · disk 4.6 GB</text>
+  <path class="ar" d="M102 176V214" marker-end="url(#mm)"/>
+  <path class="ar" d="M102 272V310" marker-end="url(#mm)"/>
+  <path class="ar b" d="M180 347H200V156H226" marker-end="url(#mb)"/>
 
-  <rect class="box data" x="794" y="116" width="150" height="214" rx="6"/>
-  <text class="t1" x="806" y="135">vm-data-4</text>
-  <text class="t2" x="806" y="162">SQL Server</text>
-  <text class="t2" x="806" y="186">Redis</text>
-  <text class="t2" x="806" y="210">RabbitMQ</text>
-  <text class="t2" x="806" y="234">Data API</text>
-  <text class="t1" x="806" y="252">ไฟล์ของ erpapi (NFS)</text>
-  <text class="t1" x="806" y="296">RAM 1.3 GB</text>
-  <text class="t1" x="806" y="312">disk 37.9 GB</text>
+  <!-- ===== Gateway ===== -->
+  <rect class="zone" x="212" y="96" width="210" height="374" rx="10"/>
+  <text class="t1" x="224" y="114">GATEWAY · Nginx + keepalived</text>
+  <rect class="vip" x="228" y="142" width="178" height="28" rx="14"/>
+  <text class="tv" x="317" y="161" text-anchor="middle">VIP 192.168.88.100</text>
 
-  <rect class="box" x="304" y="440" width="190" height="64" rx="6"/>
-  <text class="t1" x="316" y="459">vm-deploy · :8110</text>
-  <text class="t2" x="316" y="482">build → deploy</text>
-  <text class="t1" x="316" y="497">RAM 3.0 GB · disk 1.9 GB</text>
+  <rect class="box gw" x="226" y="190" width="182" height="96" rx="6"/>
+  <text class="t1" x="238" y="209">erp-gw-01 · .101</text>
+  <text class="t2" x="238" y="232">MASTER (priority 110)</text>
+  <text class="t3" x="238" y="252">ถือ VIP ตามปกติ</text>
+  <text class="t1" x="238" y="272">wildcard cert *.nisolution</text>
 
-  <path class="ar b" d="M128 225H152" marker-end="url(#mb)"/>
-  <path class="ar b" d="M278 225H300" marker-end="url(#mb)"/>
-  <path class="ar g" d="M494 205L538 140" marker-end="url(#mg)"/>
-  <path class="ar g" d="M494 255L538 322" marker-end="url(#mg)"/>
-  <text class="lbl" x="497" y="236">แบ่งงาน</text>
-  <path class="ar" d="M746 140L790 200" marker-end="url(#mm)"/>
-  <path class="ar" d="M746 326L790 268" marker-end="url(#mm)"/>
-  <path class="ar" d="M494 472H645V428" marker-end="url(#mm)"/>
-  <text class="lbl" x="512" y="465">ssh deploy → vm-service-1</text>
+  <rect class="box gw" x="226" y="352" width="182" height="96" rx="6"/>
+  <text class="t1" x="238" y="371">erp-gw-02 · .102</text>
+  <text class="t2" x="238" y="394">BACKUP (priority 100)</text>
+  <text class="t3" x="238" y="414">รับ VIP เมื่อ gw-01 ล่ม</text>
+  <text class="t1" x="238" y="434">config เหมือน gw-01 ทุกไฟล์</text>
+
+  <path class="dash" d="M317 286V352"/>
+  <text class="lbl" x="325" y="314">VRRP unicast</text>
+  <text class="lbl" x="325" y="328">เช็ก nginx ทุก 1 วิ</text>
+
+  <!-- ===== Swarm ===== -->
+  <rect class="zone" x="452" y="24" width="316" height="510" rx="10"/>
+  <text class="t1" x="464" y="42">DOCKER SWARM · stack "erp"</text>
+
+  <rect class="box app" x="466" y="56" width="288" height="218" rx="6"/>
+  <text class="t1" x="478" y="75">erp-app-01 · 192.168.88.111 · manager</text>
+  <text class="mono" x="478" y="102">erpapp    :8284 ingress   ×1</text>
+  <text class="mono" x="478" y="122">erpapi    :6334 ingress   ×1</text>
+  <text class="mono" x="478" y="140">          :6344 host (hubs)</text>
+  <text class="mono" x="478" y="160">chat-api  :6335 host      ×1</text>
+  <text class="mono" x="478" y="180">ticker    ×1 ทั้ง cluster</text>
+  <text class="lbl" x="478" y="198">          (ตอนนี้ 0 จนกว่าจะ cutover)</text>
+  <text class="t1" x="478" y="226">/opt/erp-infra · user deploy</text>
+  <text class="t1" x="478" y="244">versions.env · *.env · deploy-stack.sh</text>
+  <text class="t1" x="478" y="262">Jenkins ssh เข้าเครื่องนี้เท่านั้น</text>
+
+  <rect class="box app" x="466" y="300" width="288" height="218" rx="6"/>
+  <text class="t1" x="478" y="319">erp-app-02 · 192.168.88.112 · worker</text>
+  <text class="mono" x="478" y="346">erpapp    :8284 ingress   ×1</text>
+  <text class="mono" x="478" y="366">erpapi    :6334 ingress   ×1</text>
+  <text class="mono" x="478" y="384">          :6344 host (hubs)</text>
+  <text class="mono" x="478" y="404">chat-api  :6335 host      ×1</text>
+  <text class="mono" x="478" y="424">ticker    ย้ายมาเองถ้า 01 ล่ม</text>
+  <text class="t1" x="478" y="460">ไม่มีไฟล์ config ของ stack</text>
+  <text class="t1" x="478" y="478">Swarm ส่งงานมาให้จาก manager</text>
+  <text class="t1" x="478" y="496">vmxnet3: ปิด tx checksum (overlay)</text>
+
+  <path class="ar g" d="M408 226H436V160H464" marker-end="url(#mg)"/>
+  <path class="ar g" d="M436 226V404H464" marker-end="url(#mg)"/>
+  <text class="t1" x="24" y="420">Nginx → แอป</text>
+  <text class="lbl" x="24" y="438">REST = least_conn</text>
+  <text class="lbl" x="24" y="454">hubs / socket = sticky ตาม IP</text>
+  <text class="lbl" x="24" y="470">เครื่องล่ม = ตัดออกเอง</text>
+
+  <!-- ===== Data ===== -->
+  <rect class="box data" x="808" y="56" width="368" height="262" rx="6"/>
+  <text class="t1" x="822" y="75">erp-db-01 · 192.168.88.12 · docker compose "data"</text>
+  <text class="mono" x="822" y="104">SQL Server 2022 Express  :1433</text>
+  <text class="lbl" x="822" y="120">  GoAlongDatabase · แอปใช้ login erp_app</text>
+  <text class="mono" x="822" y="146">Redis 7.4                :6379</text>
+  <text class="lbl" x="822" y="162">  SignalR backplane · cron lock · dedupe LINE</text>
+  <text class="mono" x="822" y="188">RabbitMQ 4.0             :5672</text>
+  <text class="lbl" x="822" y="204">  log_queue · คิว webhook (จำกัด 10,000)</text>
+  <text class="mono" x="822" y="230">NFS erp-files            :2049</text>
+  <text class="lbl" x="822" y="246">  ไฟล์ upload ของ erpapi + chat-api (uid 5678)</text>
+  <text class="t1" x="822" y="276">/srv = ดิสก์ iSCSI จาก NAS</text>
+  <text class="t1" x="822" y="294">backup DB ทุกคืน 01:00 เก็บ 7 วัน</text>
+
+  <path class="ar a" d="M754 150H780V170H806" marker-end="url(#ma)"/>
+  <path class="ar a" d="M754 410H780V200H806" marker-end="url(#ma)"/>
+  <text class="lbl" x="786" y="334">SQL / Redis</text>
+  <text class="lbl" x="786" y="348">Rabbit / NFS</text>
+
+  <!-- ===== ระบบเดิม ===== -->
+  <rect class="box old" x="808" y="378" width="368" height="92" rx="6"/>
+  <text class="t1" x="822" y="397">เครื่องเดิม · 192.168.88.11 (ยังเป็น production)</text>
+  <text class="t3" x="822" y="420">app.nisolution :3030 · n8n :5678 · :10053</text>
+  <text class="t1" x="822" y="440">Zabbix · 192.168.88.21</text>
+  <text class="lbl" x="822" y="458">gateway ส่ง app / n8n / zabbix มาที่นี่ (ไม่ย้าย)</text>
+
+
+  <!-- ===== CI/CD ===== -->
+  <text class="t1" x="24" y="592">CI/CD</text>
+  <rect class="box ci" x="24" y="604" width="168" height="72" rx="6"/>
+  <text class="t2" x="108" y="630" text-anchor="middle">GitHub</text>
+  <text class="t1" x="108" y="648" text-anchor="middle">go-crmapp24 · go-coreapi</text>
+  <text class="t1" x="108" y="664" text-anchor="middle">-go-chat-api · push main</text>
+
+  <rect class="box ci" x="226" y="604" width="188" height="72" rx="6"/>
+  <text class="t2" x="320" y="630" text-anchor="middle">GitHub Actions</text>
+  <text class="t1" x="320" y="648" text-anchor="middle">build image</text>
+  <text class="t1" x="320" y="664" text-anchor="middle">tag :latest + :sha-xxxxxxx</text>
+
+  <rect class="box ci" x="452" y="604" width="220" height="72" rx="6"/>
+  <text class="t2" x="562" y="630" text-anchor="middle">Docker Hub</text>
+  <text class="t1" x="562" y="648" text-anchor="middle">nohservdoc/go-crmapp24</text>
+  <text class="t1" x="562" y="664" text-anchor="middle">go-crmapi24 · go-chat-api</text>
+
+  <rect class="box ci" x="808" y="604" width="368" height="72" rx="6"/>
+  <text class="t1" x="822" y="623">erp-ci-01 · 192.168.88.131 (เครื่องใหม่ แยกจากของเดิม)</text>
+  <text class="t2" x="822" y="646">Jenkins :8110</text>
+  <text class="t1" x="822" y="664">deploy-erpapp · deploy-erpapi · deploy-chat-api</text>
+
+  <path class="ar v" d="M192 640H224" marker-end="url(#mv)"/>
+  <path class="ar v" d="M414 640H450" marker-end="url(#mv)"/>
+  <path class="dash v" d="M562 604V538" marker-end="url(#mv)"/>
+  <text class="lbl" x="570" y="590">ทุกโหนด pull image</text>
+  <path class="ar v" d="M900 604V584H700V538" marker-end="url(#mv)"/>
+  <text class="lbl" x="708" y="556">ssh deploy@erp-app-01</text>
+  <text class="lbl" x="708" y="572">ปัก latest@sha256 → stack deploy</text>
+
+  <!-- legend -->
+  <text class="lbl" x="24" y="712">เส้นทึบ = request / งาน · เส้นประ = สัญญาณ heartbeat หรือ pull · กรอบประ = ระบบเดิมที่ยังไม่ย้าย</text>
+  <text class="lbl" x="24" y="730">STACK_MODE=test ใน versions.env = บล็อก LINE / Expo push / Facebook / Gmail ออกจาก erpapi และ chat-api จนกว่าจะ cutover</text>
 </svg>

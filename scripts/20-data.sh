@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# vm-data-4: SQL Server, Redis, RabbitMQ, NFS, backup
-# ใช้: sudo ./20-data.sh   (หลัง 00-common.sh vm-data-4 --docker)
+# erp-db-01: SQL Server, Redis, RabbitMQ, NFS, backup
+# ใช้: sudo ./20-data.sh   (หลัง 00-common.sh erp-db-01 --docker)
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env
@@ -44,4 +44,4 @@ for i in $(seq 30); do "$DIR/data/dc.sh" exec -T rabbitmq rabbitmq-diagnostics -
 
 install -m 750 "$DIR/data/mssql-backup.sh" /usr/local/bin/mssql-backup.sh
 echo "0 1 * * * root /usr/local/bin/mssql-backup.sh >> /var/log/mssql-backup.log 2>&1" > /etc/cron.d/mssql-backup
-echo "vm-data-4 พร้อม"
+echo "erp-db-01 พร้อม"

@@ -1,4 +1,4 @@
-# deploy: ./deploy-stack.sh  (บน vm-service-1 เท่านั้น)
+# deploy: ./deploy-stack.sh  (บน erp-app-01 เท่านั้น)
 version: "3.8"
 
 x-logging: &logging
@@ -47,8 +47,8 @@ services:
       start_period: 40s
     logging: *logging
     deploy:
-      # ยังรันได้แค่ 1 ตัว: SignalR ไม่มี Redis backplane (แจ้งเตือนไม่ข้ามตัว) และ background service รันซ้ำทุกตัว
-      # เครื่องล่ม → Swarm ย้ายไปอีกเครื่องเอง (หยุดราว 30–60 วินาที) · แก้โค้ดแล้วค่อยตั้ง ERPAPI_REPLICAS=2
+      # ERPAPI_REPLICAS=2 (เครื่องละตัว): SignalR ข้ามตัวผ่าน Redis backplane (Redis__Configuration ใน erpapi.env)
+      # และ background service กันรันซ้อนด้วย SqlAppLock (sp_getapplock) · ถ้าเหลือ 1 ตัว เครื่องล่มจะหยุดราว 30–60 วินาที
       mode: replicated
       replicas: ${ERPAPI_REPLICAS:-1}
       placement:
@@ -72,8 +72,8 @@ services:
       - { target: 3000, published: 6335, mode: host }      # sticky จาก Nginx ถึง container จริง
     logging: *logging
     deploy:
-      # ยังรันได้แค่ 1 ตัว: cron 3 job ใน app.js รันซ้ำทุกตัว และ dedupe LINE อยู่ใน memory
-      # (Socket.IO ข้ามตัวได้แล้วผ่าน Redis adapter) · แก้โค้ดแล้วค่อยตั้ง CHATAPI_REPLICAS=2
+      # CHATAPI_REPLICAS=2 (เครื่องละตัว): Socket.IO ข้ามตัวผ่าน Redis adapter, cron 3 job ล็อกด้วย runCronExclusive (Redis)
+      # และ dedupe LINE อยู่ใน Redis
       mode: replicated
       replicas: ${CHATAPI_REPLICAS:-1}
       placement:
@@ -99,7 +99,7 @@ services:
         limits: { cpus: "0.50", memory: 512M }
 
 volumes:
-  erp-files:                             # /app/wwwroot ของ erpapi เก็บบน data VM (NFS)
+  erp-files:                             # /app/wwwroot ของ erpapi + /usr/src/app/uploads ของ chat-api → NFS บน erp-db-01
     driver: local
     driver_opts:
       type: nfs

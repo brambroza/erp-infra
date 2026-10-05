@@ -2,7 +2,7 @@
 # เตรียมเครื่องทุกตัว
 # ใช้: sudo ./00-common.sh <hostname> [--docker]
 set -euo pipefail
-HOST="${1:?ระบุ hostname เช่น gw-1, vm-service-1}"
+HOST="${1:?ระบุ hostname เช่น erp-gw-01, erp-app-01}"
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=../inventory.env
 source "$DIR/inventory.env"

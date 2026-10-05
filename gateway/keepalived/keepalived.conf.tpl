@@ -11,7 +11,7 @@ vrrp_script chk_nginx {
     interval 1          # เช็กทุก 1 วินาที ล้ม 2 ครั้งติด = ย้าย VIP (ทดสอบจริงที่ interval 2 ใช้เวลา ~6 วินาที)
     fall 2
     rise 2
-    weight -30          # gw-1: 110 → 80 (ต่ำกว่า gw-2 = 100) VIP จึงย้าย
+    weight -30          # erp-gw-01: 110 → 80 (ต่ำกว่า erp-gw-02 = 100) VIP จึงย้าย
 }
 
 vrrp_instance VI_ERP {

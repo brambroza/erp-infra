@@ -1,4 +1,4 @@
-# vm-data-4 — ใช้ผ่าน data/dc.sh เท่านั้น (ไฟล์นี้อยู่ใน repo ตลอด รหัสผ่านอยู่ที่ /opt/data/.env)
+# erp-db-01 — ใช้ผ่าน data/dc.sh เท่านั้น (ไฟล์นี้อยู่ใน repo ตลอด รหัสผ่านอยู่ที่ /opt/data/.env)
 name: data
 services:
   mssql:

@@ -3,17 +3,17 @@
 Infrastructure as code ของระบบ ERP (nisolution.co.th) แบบ High Availability
 
 <p align="center">
-  <img src="docs/infra-diagram.svg" alt="ERP infra: ผู้ใช้ → Router → VIP (gw-1 MASTER / gw-2 BACKUP) → Swarm vm-service-1 / vm-service-2 → vm-data-4 และ vm-deploy deploy เข้า vm-service-1" width="100%">
+  <img src="docs/infra-diagram.svg" alt="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 MASTER / erp-gw-02 BACKUP) → Swarm erp-app-01 / erp-app-02 → erp-db-01; GitHub Actions → Docker Hub; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01" width="100%">
 </p>
 
 **Flow แบบย่อ**
 
 | สถานการณ์ | เส้นทาง | ผล |
 |---|---|---|
-| ปกติ | ผู้ใช้ → Router → VIP / gw-1 → vm-service-1 หรือ 2 → vm-data-4 | โหลดแบ่งครึ่ง chat/SignalR ผู้ใช้คนเดิมไปเครื่องเดิม |
-| gw-1 ล่ม | ผู้ใช้ → Router → VIP / gw-2 → vm-service-1 หรือ 2 | สะดุด 3–5 วินาที ไม่ต้องแก้ Router หรือ DNS |
-| vm-service-1 ล่ม | gw → vm-service-2 เท่านั้น → vm-data-4 | ระบบยังใช้ได้ ticker ย้ายไป vm-service-2 แต่ deploy ไม่ได้จนกว่า manager กลับมา |
-| Deploy | vm-deploy → build + push → ssh vm-service-1 → อัปเดตทีละเครื่อง | ไม่ต้องปิดระบบ health ไม่ผ่านจะ rollback เอง |
+| ปกติ | ผู้ใช้ → Cloudflare → Router → VIP (erp-gw-01) → erp-app-01 หรือ erp-app-02 → erp-db-01 | โหลดแบ่งครึ่ง hub / socket ของผู้ใช้คนเดิมไปเครื่องเดิม |
+| erp-gw-01 ล่ม | ผู้ใช้ → Router → VIP (erp-gw-02) → erp-app-01 / 02 | สะดุดราว 2–3 วินาที ไม่ต้องแก้ Router หรือ DNS |
+| erp-app-01 หรือ 02 ล่ม | gateway → เครื่องที่เหลือ → erp-db-01 | ใช้งานต่อได้ ถ้า erp-app-01 (manager) ล่ม deploy ไม่ได้จนกว่าจะกลับมา |
+| Deploy | push main → GitHub Actions → Docker Hub → Jenkins (erp-ci-01) → ssh erp-app-01 → อัปเดตทีละเครื่อง | ไม่ต้องปิดระบบ health ไม่ผ่านจะ rollback เอง |
 
 รายละเอียด diagram, flow และ resource อยู่ใน [docs/architecture.md](docs/architecture.md)
 แผนย้ายจากเครื่องเดิมทีละ phase อยู่ใน [docs/migration-plan.md](docs/migration-plan.md)
@@ -21,14 +21,19 @@ Infrastructure as code ของระบบ ERP (nisolution.co.th) แบบ Hi
 
 ## เครื่องทั้งหมด
 
-| VM | หน้าที่ | Spec แนะนำ (vCPU / RAM / Disk) |
-|---|---|---|
-| gw-1 | Nginx + keepalived (MASTER) | 1 / 2 GB / 20 GB |
-| gw-2 | Nginx + keepalived (BACKUP) | 1 / 2 GB / 20 GB |
-| vm-service-1 | Swarm manager: erpapp, erpapi, chat-api, ticker | 4 / 8 GB / 40 GB |
-| vm-service-2 | Swarm worker: erpapp, erpapi, chat-api, ticker สำรอง | 4 / 8 GB / 40 GB |
-| vm-data-4 | SQL Server, Redis, RabbitMQ, NFS | 4 / 4–8 GB / 60 GB + backup 60 GB |
-| vm-deploy | Jenkins build + deploy | 2 / 4 GB / 40 GB |
+| VM | IP | หน้าที่ | ที่รันอยู่ |
+|---|---|---|---|
+| — (VIP) | 192.168.88.100 | IP กลางที่ Router port forward เข้า | ย้ายระหว่าง gateway ด้วย keepalived |
+| erp-gw-01 | 192.168.88.101 | Gateway MASTER (priority 110) | nginx, keepalived (บนตัวเครื่อง) |
+| erp-gw-02 | 192.168.88.102 | Gateway BACKUP (priority 100) | nginx, keepalived (บนตัวเครื่อง) |
+| erp-app-01 | 192.168.88.111 | Swarm manager | erpapp, erpapi, chat-api, ticker (stack `erp`) |
+| erp-app-02 | 192.168.88.112 | Swarm worker | erpapp, erpapi, chat-api |
+| erp-db-01 | 192.168.88.12 | Data | SQL Server 2022 Express, Redis 7.4, RabbitMQ 4.0, NFS (compose `data`) |
+| erp-ci-01 | 192.168.88.131 | CI/CD | Jenkins :8110 (compose `jenkins`) |
+| เครื่องเดิม | 192.168.88.11 | production เดิม (ก่อน cutover) | app :3030, n8n :5678, :10053 ยังอยู่ที่นี่ต่อ |
+| Zabbix | 192.168.88.21 | monitoring | zabbix web / api / monitor |
+
+ค่าทั้งหมดอยู่ใน `inventory.env`
 
 ## โครงสร้าง repo
 
@@ -39,11 +44,11 @@ erp-infra/
 ├── scripts/
 │   ├── 00-audit-legacy.sh     # เครื่องเดิม: เก็บข้อมูลก่อนย้าย (อ่านอย่างเดียว)
 │   ├── 00-common.sh           # ทุกเครื่อง: hostname, hosts, sysctl, ufw, zabbix-agent, docker
-│   ├── 10-gateway.sh          # gw-1 / gw-2: nginx + keepalived
-│   ├── 11-sync-gw.sh          # รันบน gw-1: sync config (+cert) ไป gw-2
-│   ├── 20-data.sh             # vm-data-4: compose + NFS + backup cron
-│   ├── 30-swarm.sh            # vm-service-1 init / vm-service-2 join
-│   ├── 40-jenkins.sh          # vm-deploy: Jenkins + docker cli
+│   ├── 10-gateway.sh          # erp-gw-01 / erp-gw-02: nginx + keepalived
+│   ├── 11-sync-gw.sh          # รันบน erp-gw-01: sync config (+cert) ไป erp-gw-02
+│   ├── 20-data.sh             # erp-db-01: compose + NFS + backup cron
+│   ├── 30-swarm.sh            # erp-app-01 init / erp-app-02 join
+│   ├── 40-jenkins.sh          # erp-ci-01: Jenkins + docker cli
 │   └── export-env.sh          # ดึง env ของ container เดิมออกมาเป็นไฟล์
 ├── gateway/
 │   ├── keepalived/            # keepalived.conf.tpl, gw-notify.sh
@@ -62,11 +67,11 @@ erp-infra/
 0. เครื่องเดิม: `sudo SA_PASS=... scripts/00-audit-legacy.sh` เก็บข้อมูลก่อน (อ่านอย่างเดียว)
 1. แก้ `inventory.env`, `versions.env` และ path volume ตามผล audit แล้ว clone repo ไว้ที่ `/opt/erp-infra` บนทุกเครื่องใหม่
 2. ทุกเครื่อง: `sudo scripts/00-common.sh <hostname> [--docker]`
-3. vm-data-4: `sudo scripts/20-data.sh` → restore DB → rsync ไฟล์ Data API
-4. vm-service-1: `sudo scripts/30-swarm.sh init` · vm-service-2: `sudo scripts/30-swarm.sh join <token>`
-5. vm-service-1: `stacks/erp/deploy-stack.sh`
-6. gw-1 / gw-2: copy wildcard cert → `sudo scripts/10-gateway.sh gw-1` / `gw-2`
-7. vm-deploy: `sudo scripts/40-jenkins.sh`
+3. erp-db-01: `sudo scripts/20-data.sh` → restore DB → rsync ไฟล์ Data API
+4. erp-app-01: `sudo scripts/30-swarm.sh init` · erp-app-02: `sudo scripts/30-swarm.sh join <token>`
+5. erp-app-01: `stacks/erp/deploy-stack.sh`
+6. erp-gw-01 / erp-gw-02: copy wildcard cert → `sudo scripts/10-gateway.sh erp-gw-01` / `erp-gw-02`
+7. erp-ci-01: `sudo scripts/40-jenkins.sh`
 8. ทดสอบ failover ตาม runbook แล้วค่อย cutover
 
 ## Compose และวิธีสั่งงาน
@@ -76,10 +81,10 @@ compose ทุกไฟล์อยู่ใน repo นี้ที่เดี
 
 | ไฟล์ | เครื่อง | คำสั่ง | เหตุผล |
 |---|---|---|---|
-| `stacks/erp/stack.yml` | vm-service-1 (manager) | `stacks/erp/deploy-stack.sh` (= `docker stack deploy`) | กระจาย 2 เครื่อง, rolling update, ย้าย ticker ตอนเครื่องล่ม |
-| `data/compose.yml` | vm-data-4 | `data/dc.sh up -d` (= `docker compose`) | เครื่องเดียว ไม่ต้องใช้ Swarm |
-| `jenkins/compose.yml` | vm-deploy | `jenkins/dc.sh up -d --build` | เครื่องเดียว |
-| — (nginx + keepalived บนตัวเครื่อง) | gw-1, gw-2 | `scripts/10-gateway.sh` / `11-sync-gw.sh` | keepalived ต้องจัดการ IP ของเครื่องโดยตรง ไม่ใส่ใน container |
+| `stacks/erp/stack.yml` | erp-app-01 (manager) | `stacks/erp/deploy-stack.sh` (= `docker stack deploy`) | กระจาย 2 เครื่อง, rolling update, ย้าย ticker ตอนเครื่องล่ม |
+| `data/compose.yml` | erp-db-01 | `data/dc.sh up -d` (= `docker compose`) | เครื่องเดียว ไม่ต้องใช้ Swarm |
+| `jenkins/compose.yml` | erp-ci-01 | `jenkins/dc.sh up -d --build` | เครื่องเดียว |
+| — (nginx + keepalived บนตัวเครื่อง) | erp-gw-01, erp-gw-02 | `scripts/10-gateway.sh` / `11-sync-gw.sh` | keepalived ต้องจัดการ IP ของเครื่องโดยตรง ไม่ใส่ใน container |
 
 ห้ามรัน `docker compose up` กับ `stacks/erp/stack.yml` บน vm-service: จะได้ container ธรรมดาที่ไม่อยู่ใน Swarm
 ไม่มี rolling update และไม่ย้ายเครื่องตอนล่ม
