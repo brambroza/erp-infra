@@ -224,3 +224,10 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 ทางเลือก: map วาดด้วย shape ของ Zabbix เอง (ไม่ใช้รูปพื้นหลัง) — Monitoring → Maps → **Import** ไฟล์
 `monitoring/zabbix/map/zbx-map-erp-ha-topology.yaml` (ติ๊ก Images: Create new + Update existing, Maps: Create new)
 ถ้า import ไม่ผ่านเพราะหา trigger ไม่เจอ ใช้ `zbx-map-erp-ha-topology-basic.yaml` (ไม่มีเส้นแดง) · สร้างใหม่ด้วย `map/gen_map_import.py`
+
+### Animation เส้นทางข้อมูล (บันทึก ticket)
+
+`monitoring/zabbix/flow/ticket-flow.html` — หน้าเดียวจบ เปิดในเบราว์เซอร์ได้เลย หรือแปะใน Zabbix dashboard:
+1. copy ไฟล์ไปที่ web root ของ Zabbix: `sudo mkdir -p /usr/share/zabbix/erp && sudo cp ticket-flow.html /usr/share/zabbix/erp/`
+2. Administration → General → Security: **Use iframe sandboxing** ใส่ exceptions `allow-scripts allow-same-origin` (ไม่งั้น animation ไม่เล่น)
+3. Dashboard → Add widget → **URL** → `http://192.168.88.21/zabbix/erp/ticket-flow.html` (ปรับ path ตาม URL Zabbix จริง)

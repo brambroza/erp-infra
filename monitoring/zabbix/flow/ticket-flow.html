@@ -1,0 +1,381 @@
+<title>เส้นทางบันทึก Ticket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: แผนภาพ topology เต็มความกว้างด้านบน · แผงขั้นปัจจุบัน + รายการขั้นด้านล่าง · ธีมมืดแบบจอ NOC (ตั้งใจใช้ธีมเดียว) */
+:root {
+  --bg: #0D1621; --panel: #121F2D; --panel-2: #172636; --line: #22344A;
+  --ink: #E6EDF5; --muted: #8FA0B4; --dim: #5B6B7E;
+  --edge: #7AA2FF; --app: #3DD6AE; --data: #F2B455; --resp: #A6E36B; --rt: #FF8FB8;
+  --display: "IBM Plex Sans Thai", "Noto Sans Thai", "Sukhumvit Set", Tahoma, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--display); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-inline: 20px; padding-block: 22px 40px; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; }
+h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+.mode { font-family: var(--mono); font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow-x: auto; }
+.stage svg { display: block; width: 100%; min-width: 760px; height: auto; }
+
+.panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 18px; }
+@media (max-width: 860px) { .panel { grid-template-columns: minmax(0, 1fr); } }
+
+.now { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.now .count { font-family: var(--mono); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.now h2 { margin: 0; font-size: 21px; font-weight: 700; text-wrap: balance; }
+.now p { margin: 0; color: #C7D2DE; max-width: 68ch; }
+.payload { font-family: var(--mono); font-size: 13px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; overflow-x: auto; white-space: pre; }
+.kind { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.kind i { width: 10px; height: 10px; border-radius: 50%; background: var(--k, var(--edge)); box-shadow: 0 0 10px var(--k, var(--edge)); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+button { font: inherit; font-size: 14px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--edge); }
+button:focus-visible, .steps button:focus-visible { outline: 2px solid var(--edge); outline-offset: 2px; }
+button.primary { background: var(--edge); border-color: var(--edge); color: #0B1420; font-weight: 600; min-width: 96px; }
+.speed { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; margin-left: auto; }
+.speed select { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+
+.steps { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 10px; margin: 0; list-style: none; display: grid; gap: 2px; max-height: 460px; overflow-y: auto; counter-reset: s; min-width: 0; }
+.steps button { width: 100%; text-align: left; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; background: transparent; border: 0; border-radius: 10px; padding: 7px 8px; color: var(--muted); font-size: 13.5px; }
+.steps button::before { counter-increment: s; content: counter(s); font-family: var(--mono); font-size: 12px; color: var(--dim); text-align: right; padding-top: 1px; }
+.steps button:hover { background: var(--panel-2); color: var(--ink); }
+.steps li.done button { color: #B3C0CF; }
+.steps li.on button { background: var(--panel-2); color: var(--ink); box-shadow: inset 3px 0 0 var(--k, var(--edge)); }
+.steps li.on button::before { color: var(--ink); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 18px; height: 3px; border-radius: 2px; background: var(--k); }
+
+/* svg */
+.lnk { fill: none; stroke: var(--line); stroke-width: 2; }
+.lnk.dash { stroke-dasharray: 6 6; }
+.lnk.hot { stroke: var(--k, var(--edge)); stroke-width: 3; filter: drop-shadow(0 0 4px var(--k, var(--edge))); }
+.ring { fill: var(--bg); stroke: var(--c); stroke-width: 2.5; }
+.halo { fill: var(--c); opacity: 0; transition: opacity .35s; }
+.node.hot .halo { opacity: .22; }
+.node.idle { opacity: .45; }
+.core { fill: #0A1119; stroke: var(--c); stroke-opacity: .4; }
+.nm { fill: var(--ink); font: 700 14px var(--display); }
+.ip { fill: var(--c); font: 500 11px var(--mono); }
+.sub { fill: var(--muted); font: 400 11px var(--display); }
+.chip rect { fill: var(--c); fill-opacity: .1; stroke: var(--c); stroke-opacity: .5; transition: fill-opacity .3s; }
+.chip text { fill: var(--c); font: 600 11px var(--mono); }
+.chip.hot rect { fill-opacity: .35; stroke-opacity: 1; }
+.tier { fill: var(--muted); font: 600 12px var(--display); letter-spacing: .02em; }
+.band { fill: #0F1A26; }
+.glyph { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#pkt { fill: var(--k, var(--edge)); filter: drop-shadow(0 0 8px var(--k, var(--edge))); }
+#pktTrail { fill: none; stroke: var(--k, var(--edge)); stroke-width: 3; stroke-linecap: round; opacity: .55; }
+.tag rect { fill: var(--bg); stroke: var(--k, var(--edge)); }
+.tag text { fill: var(--ink); font: 600 11px var(--mono); }
+@media (prefers-reduced-motion: reduce) { .halo, .chip rect { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>เส้นทางบันทึก Ticket</h1>
+      <p class="lede">ช่าง A กดบันทึก ticket แล้วช่าง B ที่เปิดหน้าจออยู่เห็นแจ้งเตือนทันที — ดูว่าข้อมูลวิ่งผ่านเครื่องไหนบ้างในระบบ HA</p>
+    </div>
+    <span class="mode">VIP 192.168.88.100 · gw-01 เป็น MASTER</span>
+  </header>
+
+  <div class="stage" aria-label="แผนภาพ topology พร้อมจุดข้อมูลที่วิ่งตามขั้น">
+    <svg id="map" viewBox="0 0 1240 600" role="img" aria-labelledby="mapTitle">
+      <title id="mapTitle">Topology ของระบบ ERP HA และเส้นทางข้อมูลของการบันทึก ticket</title>
+      <defs>
+        <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1A2633"/></pattern>
+      </defs>
+      <rect width="1240" height="600" fill="url(#dots)"/>
+      <rect class="band" x="14" y="14" width="300" height="572" rx="16"/>
+      <rect class="band" x="326" y="14" width="300" height="572" rx="16"/>
+      <rect class="band" x="638" y="14" width="250" height="572" rx="16"/>
+      <rect class="band" x="900" y="14" width="326" height="572" rx="16"/>
+      <text class="tier" x="32" y="42">ผู้ใช้ และอินเทอร์เน็ต</text>
+      <text class="tier" x="344" y="42" style="fill:var(--edge)">Gateway — HA คู่</text>
+      <text class="tier" x="656" y="42" style="fill:var(--app)">Docker Swarm</text>
+      <text class="tier" x="918" y="42" style="fill:var(--data)">erp-db-01 · 192.168.88.12</text>
+      <g id="links"></g>
+      <g id="nodes"></g>
+      <path id="pktTrail" d=""/>
+      <circle id="pkt" r="7" cx="-20" cy="-20"/>
+      <g id="tag" class="tag" opacity="0"><rect rx="6" height="22"/><text y="15"></text></g>
+    </svg>
+  </div>
+
+  <div class="legend" aria-label="สีของจุดข้อมูล">
+    <span><i style="--k:var(--edge)"></i>คำขอ HTTPS</span>
+    <span><i style="--k:var(--data)"></i>คุยกับฐานข้อมูล / คิว</span>
+    <span><i style="--k:var(--rt)"></i>แจ้งเตือน realtime (SignalR)</span>
+    <span><i style="--k:var(--resp)"></i>คำตอบกลับ</span>
+  </div>
+
+  <div class="panel">
+    <section class="now" aria-live="polite">
+      <div class="count" id="count">ขั้น 1 / 12</div>
+      <h2 id="stepTitle"></h2>
+      <p id="stepBody"></p>
+      <div class="payload" id="stepPayload"></div>
+      <span class="kind" id="stepKind"><i></i><span></span></span>
+      <div class="controls">
+        <button id="prev" type="button" aria-label="ขั้นก่อนหน้า">‹ ก่อนหน้า</button>
+        <button id="play" type="button" class="primary">หยุด</button>
+        <button id="next" type="button" aria-label="ขั้นถัดไป">ถัดไป ›</button>
+        <label class="speed" for="speed">ความเร็ว
+          <select id="speed"><option value="0.6">ช้า</option><option value="1" selected>ปกติ</option><option value="1.8">เร็ว</option></select>
+        </label>
+      </div>
+    </section>
+    <ol class="steps" id="steps"></ol>
+  </div>
+</div>
+
+<script>
+(() => {
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const C = { edge: css('--edge'), app: css('--app'), data: css('--data'), resp: css('--resp'), rt: css('--rt'), old: '#7E8A98' };
+  const KIND = {
+    req:  { c: 'var(--edge)', name: 'คำขอ HTTPS' },
+    db:   { c: 'var(--data)', name: 'คุยกับฐานข้อมูล / คิว' },
+    rt:   { c: 'var(--rt)',   name: 'แจ้งเตือน realtime (SignalR)' },
+    resp: { c: 'var(--resp)', name: 'คำตอบกลับ' },
+  };
+
+  // ---------- โหนด ----------
+  const N = {
+    A:   { x: 92,  y: 190, kind: 'user', name: 'ช่าง A', sub: 'กดบันทึก ticket', c: C.old },
+    B:   { x: 92,  y: 450, kind: 'user', name: 'ช่าง B', sub: 'เปิดหน้า ticket ค้างไว้', c: C.old },
+    cf:  { x: 236, y: 320, kind: 'cloud', name: 'Cloudflare', sub: 'proxied', c: C.old },
+    rt:  { x: 392, y: 320, kind: 'router', name: 'Router', sub: 'NAT 443 → VIP', c: C.old },
+    gw1: { x: 520, y: 190, kind: 'host', name: 'erp-gw-01', ip: '.101 · ถือ VIP', sub: 'nginx + keepalived', c: C.edge },
+    gw2: { x: 520, y: 450, kind: 'host', name: 'erp-gw-02', ip: '.102 · standby', sub: 'ไม่ได้ใช้ใน flow นี้', c: C.edge, idle: true },
+    app1:{ x: 762, y: 190, kind: 'host', name: 'erp-app-01', ip: '192.168.88.111', sub: 'erpapi · hub ของช่าง B', c: C.app },
+    app2:{ x: 762, y: 450, kind: 'host', name: 'erp-app-02', ip: '192.168.88.112', sub: 'erpapi · รับคำขอนี้', c: C.app },
+  };
+  // บริการใน erp-db-01 (ชิป)
+  const S = {
+    sql:   { x: 1060, y: 150, label: 'SQL Server 1433' },
+    redis: { x: 1060, y: 250, label: 'Redis 6379' },
+    mq:    { x: 1060, y: 350, label: 'RabbitMQ 5672' },
+    nfs:   { x: 1060, y: 450, label: 'NFS 2049' },
+  };
+
+  const LINKS = [
+    ['A','cf'], ['B','cf'], ['cf','rt'], ['rt','gw1'], ['rt','gw2', true],
+    ['gw1','app1'], ['gw1','app2'], ['gw2','app1', true], ['gw2','app2', true],
+    ['app1','sql'], ['app1','redis'], ['app1','mq'], ['app2','sql'], ['app2','redis'], ['app2','mq'],
+  ];
+
+  // ---------- ขั้นตอน ----------
+  const STEPS = [
+    { path: ['A','cf'], k: 'req', t: 'ช่าง A กดบันทึก ticket',
+      b: 'เบราว์เซอร์ส่งคำขอ HTTPS ไปที่ api.nisolution.co.th ซึ่ง DNS ชี้ไป Cloudflare ไม่ได้วิ่งเข้าสำนักงานตรง ๆ',
+      p: 'POST https://api.nisolution.co.th/ServiceTickets\n{ "subject": "แอร์ห้อง 3 ไม่เย็น", ... }' },
+    { path: ['cf','rt'], k: 'req', t: 'Cloudflare ส่งต่อมาที่ Router ของบริษัท',
+      b: 'Cloudflare ใส่ IP จริงของช่าง A ไว้ใน header CF-Connecting-IP แล้วยิงเข้า public IP ของบริษัทที่ port 443',
+      p: 'CF-Connecting-IP: <IP ของช่าง A>' },
+    { path: ['rt','gw1'], k: 'req', t: 'Router ส่งเข้า VIP — ตอนนี้อยู่ที่ erp-gw-01',
+      b: 'Router NAT ไปที่ 192.168.88.100 เสมอ ส่วนว่า VIP อยู่เครื่องไหน keepalived เป็นคนตัดสิน ถ้า gw-01 ล่ม VIP ย้ายไป gw-02 ในราว 2 วินาทีโดย Router ไม่ต้องแก้อะไร',
+      p: '192.168.88.100:443  →  erp-gw-01 (MASTER, priority 110)', hot: ['gw2'] },
+    { path: ['gw1','app2'], k: 'req', t: 'nginx เลือกเครื่องแอปที่ว่างกว่า',
+      b: 'nginx ถอด HTTPS ด้วย wildcard cert แล้วส่งคำขอ REST ไป port 6334 ด้วยวิธี least_conn รอบนี้ได้ erp-app-02',
+      p: 'upstream erpapi { least_conn; 111:6334; 112:6334 }  →  erp-app-02' },
+    { path: ['app2','sql'], k: 'db', t: 'erpapi บันทึก ticket ลง SQL Server',
+      b: 'erpapi ต่อฐานข้อมูลด้วย login erp_app ซึ่งเขียนข้อมูลและเรียก stored procedure ได้ แต่แก้โครงสร้างตารางไม่ได้',
+      p: 'EXEC dbo.setServiceTicket @CmpId, @Subject, ...   (GoAlongDatabase)', chip: 'sql' },
+    { path: ['sql','app2'], k: 'db', t: 'SQL Server ตอบกลับเลข ticket',
+      b: 'ข้อมูลอยู่บน /srv ของ erp-db-01 ซึ่งเป็นดิสก์ iSCSI จาก NAS และ backup ทุกคืนตี 1',
+      p: 'TicketId = 26100517', chip: 'sql' },
+    { path: ['app2','mq'], k: 'db', t: 'ส่ง log เข้าคิว RabbitMQ',
+      b: 'การเขียน log ไม่ทำให้ผู้ใช้ต้องรอ erpapi โยนข้อความเข้า log_queue แล้วไปต่อทันที งานเบื้องหลังค่อยหยิบไปบันทึก',
+      p: 'publish  log_queue  { action: "ticket.create", ticketId: 26100517 }', chip: 'mq' },
+    { path: ['app2','redis'], k: 'rt', t: 'ประกาศแจ้งเตือนผ่าน Redis',
+      b: 'ช่าง B ต่อ SignalR อยู่กับ erp-app-01 ไม่ใช่เครื่องนี้ erp-app-02 จึงส่งข้อความผ่าน Redis backplane ให้ทุกเครื่องได้รับ',
+      p: 'PUBLISH goalongapi:notificationhub  { to: "ช่าง B", ticketId: 26100517 }', chip: 'redis' },
+    { path: ['redis','app1'], k: 'rt', t: 'erp-app-01 ได้รับข้อความจาก Redis',
+      b: 'erpapi บน erp-app-01 subscribe ช่องเดียวกันอยู่ จึงรู้ทันทีว่ามีแจ้งเตือนให้ผู้ใช้ที่ต่อกับตัวเอง',
+      p: 'SUBSCRIBE goalongapi:*  →  message', chip: 'redis' },
+    { path: ['app1','gw1','rt','cf','B'], k: 'rt', t: 'ส่งแจ้งเตือนถึงช่าง B ผ่าน WebSocket เดิม',
+      b: 'การต่อ SignalR ของช่าง B วิ่งผ่าน port 6344 แบบ sticky ตาม IP ทำให้ไปถึง container ตัวเดิมทุกครั้ง ข้อความจึงย้อนเส้นทางเดิมกลับไปที่เบราว์เซอร์ทันที',
+      p: 'wss://api.nisolution.co.th/notificationhub  →  "ReceiveNotification"' },
+    { path: ['app2','gw1','rt','cf','A'], k: 'resp', t: 'ตอบกลับช่าง A ว่าบันทึกสำเร็จ',
+      b: 'คำตอบวิ่งกลับเส้นทางเดิมที่ขาเข้าใช้ ตั้งแต่กดบันทึกจนได้คำตอบใช้เวลาไม่ถึงวินาทีในสภาพปกติ',
+      p: 'HTTP 200  { "ticketId": 26100517 }' },
+    { path: ['B'], k: 'resp', t: 'ทั้งสองคนเห็นผลพร้อมกัน',
+      b: 'ระหว่างนี้ถ้า erp-app-01 หรือ gw-01 ดับ ระบบยังทำงานต่อได้ เพราะทุกชั้นมีสองเครื่อง ยกเว้น erp-db-01 ที่ป้องกันด้วย backup',
+      p: 'ช่าง A: บันทึกแล้ว  ·  ช่าง B: มี ticket ใหม่ 1 รายการ' },
+  ];
+
+  // ---------- วาด ----------
+  const svg = document.getElementById('map');
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+  const pos = id => N[id] || S[id];
+  const linkEls = {};
+  const gl = document.getElementById('links');
+  for (const [a, b, dash] of LINKS) {
+    const p = pos(a), q = pos(b);
+    const mx = (p.x + q.x) / 2;
+    const d = `M${p.x} ${p.y}C${mx} ${p.y} ${mx} ${q.y} ${q.x - (S[b] ? 70 : 0)} ${q.y}`;
+    const e = el('path', { d, class: 'lnk' + (dash ? ' dash' : '') }, gl);
+    linkEls[a + '>' + b] = { el: e, rev: false }; linkEls[b + '>' + a] = { el: e, rev: true };
+  }
+  const gn = document.getElementById('nodes');
+  const nodeEls = {};
+  const glyphs = {
+    user: (x, y) => `M${x-5} ${y-8}a4 4 0 1 0 0.1 0M${x-12} ${y+9}c1-6 4-8 7-8s6 2 7 8M${x+5} ${y-9}a3 3 0 1 0 .1 0M${x+4} ${y-2}c4 0 7 2 8 7`,
+    cloud: (x, y) => `M${x-10} ${y+6}h19a6 6 0 0 0 0-12a8 8 0 0 0-15-2a5.5 5.5 0 0 0-4 14z`,
+    router: (x, y) => `M${x-10} ${y}h20M${x} ${y-10}v20M${x+6} ${y-4}l4 4l-4 4M${x-6} ${y-4}l-4 4l4 4M${x-4} ${y-6}l4-4l4 4M${x-4} ${y+6}l4 4l4-4`,
+  };
+  for (const [id, n] of Object.entries(N)) {
+    const g = el('g', { class: 'node' + (n.idle ? ' idle' : ''), style: `--c:${n.c}` }, gn);
+    el('circle', { class: 'halo', cx: n.x, cy: n.y, r: 40 }, g);
+    if (n.kind === 'host') {
+      el('circle', { class: 'ring', cx: n.x, cy: n.y, r: 24 }, g);
+      el('circle', { class: 'core', cx: n.x, cy: n.y, r: 12 }, g);
+      el('circle', { cx: n.x, cy: n.y, r: 7, fill: n.idle ? '#5B6B7E' : '#22C55E' }, g);
+    } else {
+      el('circle', { class: 'ring', cx: n.x, cy: n.y, r: 21, style: 'fill:#111D2A' }, g);
+      el('path', { class: 'glyph', d: glyphs[n.kind](n.x, n.y) }, g);
+    }
+    const ty = n.y + 46;
+    el('text', { class: 'nm', x: n.x, y: ty, 'text-anchor': 'middle' }, g).textContent = n.name;
+    if (n.ip) el('text', { class: 'ip', x: n.x, y: ty + 16, 'text-anchor': 'middle' }, g).textContent = n.ip;
+    el('text', { class: 'sub', x: n.x, y: ty + (n.ip ? 31 : 16), 'text-anchor': 'middle' }, g).textContent = n.sub;
+    nodeEls[id] = g;
+  }
+  // erp-db-01 card + chips
+  el('rect', { x: 980, y: 104, width: 220, height: 380, rx: 16, fill: 'none', stroke: C.data, 'stroke-opacity': .45, 'stroke-width': 1.5 }, gn);
+  for (const [id, s] of Object.entries(S)) {
+    const g = el('g', { class: 'chip', style: `--c:${C.data}` }, gn);
+    el('rect', { x: s.x - 70, y: s.y - 16, width: 140, height: 32, rx: 16 }, g);
+    el('text', { x: s.x, y: s.y + 4, 'text-anchor': 'middle' }, g).textContent = s.label;
+    nodeEls[id] = g;
+  }
+  el('text', { class: 'sub', x: 1090, y: 520, 'text-anchor': 'middle' }, gn).textContent = '/srv บน iSCSI · backup ทุกคืน 01:00';
+
+  // ---------- รายการขั้น ----------
+  const list = document.getElementById('steps');
+  STEPS.forEach((s, i) => {
+    const li = document.createElement('li');
+    li.style.setProperty('--k', KIND[s.k].c);
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = s.t;
+    b.addEventListener('click', () => go(i, true));
+    li.appendChild(b); list.appendChild(li);
+  });
+
+  // ---------- เคลื่อนที่ ----------
+  const pkt = document.getElementById('pkt'), trail = document.getElementById('pktTrail');
+  const tag = document.getElementById('tag');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let i = 0, t0 = 0, playing = !reduce, speed = 1, raf = 0, phase = 'move';
+  const MOVE = 1700, HOLD = 2300;
+
+  // เส้นทางของขั้น = ลำดับเส้นเชื่อมจริง (โค้ง) — จุดข้อมูลวิ่งตามโค้ง
+  function pts(step) {
+    const segs = [];
+    for (let m = 1; m < step.path.length; m++) {
+      const l = linkEls[step.path[m-1] + '>' + step.path[m]];
+      if (l) segs.push({ el: l.el, rev: l.rev, len: l.el.getTotalLength() });
+    }
+    const p0 = pos(step.path[0]);
+    return { segs, still: { x: S[step.path[0]] ? p0.x - 70 : p0.x, y: p0.y } };
+  }
+  function along(P, f) {
+    if (!P.segs.length) return P.still;
+    const tot = P.segs.reduce((a, s) => a + s.len, 0);
+    let d = Math.min(Math.max(f, 0), 1) * tot;
+    for (const s of P.segs) {
+      if (d <= s.len) { const q = s.el.getPointAtLength(s.rev ? s.len - d : d); return { x: q.x, y: q.y }; }
+      d -= s.len;
+    }
+    const s = P.segs[P.segs.length - 1]; const q = s.el.getPointAtLength(s.rev ? 0 : s.len); return { x: q.x, y: q.y };
+  }
+  const ease = f => f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+
+  function paint(step) {
+    const k = KIND[step.k];
+    svg.style.setProperty('--k', k.c);
+    Object.values(nodeEls).forEach(g => g.classList.remove('hot'));
+    Object.values(linkEls).forEach(l => l.el.classList.remove('hot'));
+    step.path.forEach(id => nodeEls[id] && nodeEls[id].classList.add('hot'));
+    if (step.chip) nodeEls[step.chip].classList.add('hot');
+    for (let m = 1; m < step.path.length; m++) {
+      const l = linkEls[step.path[m-1] + '>' + step.path[m]]; if (l) l.el.classList.add('hot');
+    }
+    document.getElementById('count').textContent = `ขั้น ${i + 1} / ${STEPS.length}`;
+    document.getElementById('stepTitle').textContent = step.t;
+    document.getElementById('stepBody').textContent = step.b;
+    document.getElementById('stepPayload').textContent = step.p;
+    const kind = document.getElementById('stepKind');
+    kind.style.setProperty('--k', k.c); kind.querySelector('span').textContent = k.name;
+    [...list.children].forEach((li, n) => { li.classList.toggle('on', n === i); li.classList.toggle('done', n < i); });
+    const on = list.children[i]; if (on) on.scrollIntoView({ block: 'nearest' });
+    const P = pts(step);
+    const label = step.p.split('\n')[0].split('  ')[0].slice(0, 46);
+    tag.querySelector('text').textContent = label;
+    const w = label.length * 6.9 + 16;
+    tag.querySelector('rect').setAttribute('width', w);
+    tag.querySelector('text').setAttribute('x', 8);
+    tag.dataset.w = w;
+    trail.setAttribute('d', '');
+    draw(P, reduce ? 1 : 0);
+  }
+  function draw(P, f) {
+    const p = along(P, ease(f));
+    pkt.setAttribute('cx', p.x); pkt.setAttribute('cy', p.y);
+    let d = '';
+    if (P.segs.length) { const e = ease(f); for (let k = 0; k <= 8; k++) { const q = along(P, Math.max(0, e - .14 + .14 * k / 8)); d += (k ? 'L' : 'M') + q.x.toFixed(1) + ' ' + q.y.toFixed(1); } }
+    trail.setAttribute('d', d);
+    const w = +tag.dataset.w || 100;
+    const tx = Math.min(Math.max(p.x - w / 2, 18), 1222 - w);
+    tag.setAttribute('transform', `translate(${tx} ${p.y - 40})`);
+    tag.setAttribute('opacity', 1);
+  }
+  function go(n, manual) {
+    i = (n + STEPS.length) % STEPS.length; phase = 'move'; t0 = performance.now();
+    paint(STEPS[i]);
+    if (manual && !playing) { draw(pts(STEPS[i]), 1); }
+  }
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    if (!playing) return;
+    const el = (now - t0) * speed;
+    if (phase === 'move') {
+      const f = Math.min(1, el / MOVE);
+      draw(pts(STEPS[i]), f);
+      if (f >= 1) { phase = 'hold'; t0 = now; }
+    } else if (el >= (i === STEPS.length - 1 ? HOLD * 1.8 : HOLD)) {
+      go(i + 1);
+    }
+  }
+  const playBtn = document.getElementById('play');
+  function setPlaying(v) {
+    playing = v; playBtn.textContent = v ? 'หยุด' : 'เล่น';
+    if (v) { t0 = performance.now(); if (phase === 'hold') t0 -= 0; }
+  }
+  playBtn.addEventListener('click', () => setPlaying(!playing));
+  document.getElementById('next').addEventListener('click', () => go(i + 1, true));
+  document.getElementById('prev').addEventListener('click', () => go(i - 1, true));
+  document.getElementById('speed').addEventListener('change', e => { speed = +e.target.value; });
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('select')) return;
+    if (e.key === 'ArrowRight') go(i + 1, true);
+    else if (e.key === 'ArrowLeft') go(i - 1, true);
+    else if (e.key === ' ' && e.target === document.body) { e.preventDefault(); setPlaying(!playing); }
+  });
+
+  setPlaying(playing);
+  go(0, !playing);
+  if (!playing) draw(pts(STEPS[0]), 1);
+  raf = requestAnimationFrame(tick);
+})();
+</script>
