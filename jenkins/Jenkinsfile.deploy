@@ -1,5 +1,5 @@
 // Job: erp-deploy  — deploy image ที่ push แล้วเข้า Swarm แบบ rolling
-// Credential ที่ต้องมี: swarm-manager-ssh (SSH private key ของ user deploy บน vm-service-1)
+// Credential ที่ต้องมี: swarm-manager-ssh (SSH private key ของ user deploy บน erp-app-01)
 pipeline {
   agent any
   parameters {
@@ -7,7 +7,7 @@ pipeline {
     string(name: 'TAG', defaultValue: '', description: 'image tag ที่ push แล้ว เช่น b152')
   }
   environment {
-    MANAGER   = 'deploy@192.168.88.111'          // vm-service-1
+    MANAGER   = 'deploy@192.168.88.111'          // erp-app-01 (Swarm manager)
     STACK_DIR = '/opt/erp-infra/stacks/erp'
   }
   options {
