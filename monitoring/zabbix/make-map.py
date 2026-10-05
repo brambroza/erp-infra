@@ -6,7 +6,7 @@
   export ZBX_TOKEN=xxxxxxxx                        # User settings → API tokens (สิทธิ์ Super admin)
   python3 monitoring/zabbix/make-map.py
 
-Map: พื้นหลัง = docs/infra-diagram.svg (export เป็น map/erp-ha-background.png)
+Map: พื้นหลัง = map/erp-ha-topology.png (สร้างจาก map/gen_topology.py)
      จุดที่มุมขวาบนของการ์ดแต่ละเครื่อง: เขียว = ปกติ · แดง = มี problem · เทา = ปิด / maintenance
 ต้องเพิ่ม host ใน Zabbix ครบก่อน (host ที่ยังไม่มีจะถูกข้ามพร้อมแจ้งเตือน)
 """
@@ -20,14 +20,14 @@ GROUP = "ERP-HA"
 W, H = 1240, 680
 
 # ตำแหน่งจุดสถานะ (มุมซ้ายบนของไอคอน 28px) — ตรงกับ layout ใน docs/infra-diagram.svg
-DOTS = [
-    ("erp-vip",    414, 56),    # ปลายขวาของแถบ VIP (web scenario ผ่าน VIP)
-    ("erp-gw-01",  418, 98),
-    ("erp-gw-02",  418, 316),
-    ("erp-app-01", 790, 42),
-    ("erp-app-02", 790, 316),
-    ("erp-db-01",  1194, 42),
-    ("erp-ci-01",  1194, 542),
+DOTS = [                    # = จุดกลางวงใน map/gen_topology.py ลบ 14
+    ("erp-vip",    426, 316),
+    ("erp-gw-01",  576, 156),
+    ("erp-gw-02",  576, 476),
+    ("erp-app-01", 798, 156),
+    ("erp-app-02", 798, 476),
+    ("erp-db-01",  1074, 286),
+    ("erp-ci-01",  1074, 90),
 ]
 
 if not URL or not TOKEN:
@@ -80,7 +80,7 @@ def main():
     VERSION = tuple(int(x) for x in v.split(".")[:2])
     print(f"Zabbix API {v}")
 
-    bg = upsert_image("erp-ha-background", os.path.join(HERE, "map/erp-ha-background.png"), 2)
+    bg = upsert_image("erp-ha-background", os.path.join(HERE, "map/erp-ha-topology.png"), 2)
     ok = upsert_image("erp-dot-ok", os.path.join(HERE, "map/erp-dot-ok.png"), 1)
     bad = upsert_image("erp-dot-problem", os.path.join(HERE, "map/erp-dot-problem.png"), 1)
     off = upsert_image("erp-dot-off", os.path.join(HERE, "map/erp-dot-off.png"), 1)

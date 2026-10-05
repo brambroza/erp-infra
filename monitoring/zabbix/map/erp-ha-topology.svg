@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 680" width="1240" height="680">
+<defs><pattern id="g" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#1A2633"/></pattern></defs>
+<rect width="1240" height="680" fill="#0D1621"/><rect width="1240" height="680" fill="url(#g)"/>
+<rect x="16" y="16" width="352" height="648" rx="18" fill="#111D2A" fill-opacity="0.55"/>
+<rect x="32" y="34" width="4" height="14" rx="2" fill="#7E8A98"/>
+<text x="44" y="46" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="12.5" font-weight="700" fill="#7E8A98" text-anchor="start" letter-spacing="0.3">อินเทอร์เน็ต</text>
+<rect x="380" y="16" width="290" height="648" rx="18" fill="#111D2A" fill-opacity="0.55"/>
+<rect x="396" y="34" width="4" height="14" rx="2" fill="#7AA2FF"/>
+<text x="408" y="46" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="12.5" font-weight="700" fill="#7AA2FF" text-anchor="start" letter-spacing="0.3">Gateway — HA คู่</text>
+<rect x="682" y="16" width="262" height="648" rx="18" fill="#111D2A" fill-opacity="0.55"/>
+<rect x="698" y="34" width="4" height="14" rx="2" fill="#3DD6AE"/>
+<text x="710" y="46" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="12.5" font-weight="700" fill="#3DD6AE" text-anchor="start" letter-spacing="0.3">Docker Swarm — stack erp</text>
+<rect x="956" y="16" width="268" height="648" rx="18" fill="#111D2A" fill-opacity="0.55"/>
+<rect x="972" y="34" width="4" height="14" rx="2" fill="#F2B455"/>
+<text x="984" y="46" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="12.5" font-weight="700" fill="#F2B455" text-anchor="start" letter-spacing="0.3">Data และ CI</text>
+<rect x="514" y="112" width="152" height="478" rx="22" fill="none" stroke="#7AA2FF" stroke-opacity="0.28" stroke-dasharray="3 5"/>
+<text x="590" y="610" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">VRRP pair · VIP ย้ายเองใน ~2 วิ</text>
+<path d="M98 330H170" fill="none" stroke="#7E8A98" stroke-width="2.2" stroke-opacity="0.95"/>
+<path d="M210 330H282" fill="none" stroke="#7E8A98" stroke-width="2.2" stroke-opacity="0.95"/>
+<path d="M322 330H414" fill="none" stroke="#7AA2FF" stroke-width="2.2" stroke-opacity="0.95"/>
+<text x="373.0" y="320" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">443 → VIP</text>
+<path d="M466 324C510 324 510 170 564 170" fill="none" stroke="#7AA2FF" stroke-width="2.2" stroke-opacity="0.95"/>
+<text x="528" y="232" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="end" letter-spacing="0">active</text>
+<path d="M466 336C510 336 510 490 564 490" fill="none" stroke="#7AA2FF" stroke-width="2.2" stroke-opacity="0.8" stroke-dasharray="7 6"/>
+<text x="522" y="416" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="end" letter-spacing="0">standby</text>
+<path d="M590 264V460" fill="none" stroke="#7AA2FF" stroke-width="2.4" stroke-opacity="0.8" stroke-dasharray="1 6" stroke-linecap="round"/>
+<text x="600" y="338" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">VRRP</text>
+<text x="600" y="352" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">ทุก 1 วิ</text>
+<path d="M616 170H786" fill="none" stroke="#3DD6AE" stroke-width="2.2" stroke-opacity="0.95"/>
+<path d="M616 176C710 176 702 490 786 490" fill="none" stroke="#3DD6AE" stroke-width="1.8" stroke-opacity="0.95"/>
+<path d="M616 490H786" fill="none" stroke="#3DD6AE" stroke-width="2.2" stroke-opacity="0.8" stroke-dasharray="7 6"/>
+<path d="M616 484C710 484 702 170 786 174" fill="none" stroke="#3DD6AE" stroke-width="1.6" stroke-opacity="0.8" stroke-dasharray="7 6"/>
+<text x="701" y="132" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">REST: least_conn</text>
+<text x="701" y="146" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">hub/socket: sticky</text>
+<path d="M838 170C942 170 968 300 1062 296" fill="none" stroke="#F2B455" stroke-width="2.2" stroke-opacity="0.95"/>
+<path d="M838 490C942 490 968 300 1062 304" fill="none" stroke="#F2B455" stroke-width="2.2" stroke-opacity="0.95"/>
+<text x="958" y="248" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">SQL · Redis</text>
+<text x="958" y="262" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">RabbitMQ · NFS</text>
+<path d="M1062 104C948 104 902 130 830 152" fill="none" stroke="#B69CFF" stroke-width="1.8" stroke-opacity="0.8" stroke-dasharray="10 5"/>
+<text x="960" y="96" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">ssh deploy</text>
+<circle cx="78" cy="330" r="20" fill="#111D2A" stroke="#7E8A98" stroke-width="1.6"/>
+<circle cx="74" cy="326" r="4" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M66 339c1-6 4-8 8-8s7 2 8 8" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84" cy="324" r="3" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/><path d="M82 330c4 0 7 2 8 7" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+<text x="78" y="374" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">ผู้ใช้</text>
+<text x="78" y="391" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7E8A98" text-anchor="middle" letter-spacing="0">HTTPS 443</text>
+<text x="78" y="407" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">เว็บ, แอป, LINE</text>
+<circle cx="190" cy="330" r="20" fill="#111D2A" stroke="#7E8A98" stroke-width="1.6"/>
+<path d="M180 336h19a6 6 0 0 0 0-12a8 8 0 0 0-15-2a5.5 5.5 0 0 0-4 14z" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="190" y="374" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">Cloudflare</text>
+<text x="190" y="391" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7E8A98" text-anchor="middle" letter-spacing="0">proxied</text>
+<text x="190" y="407" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">SSL Full (strict)</text>
+<circle cx="302" cy="330" r="20" fill="#111D2A" stroke="#7E8A98" stroke-width="1.6"/>
+<path d="M292 330h20M302 320v20M308 326l4 4l-4 4M296 326l-4 4l4 4M298 324l4-4l4 4M298 336l4 4l4-4" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="302" y="374" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">Router</text>
+<text x="302" y="391" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7E8A98" text-anchor="middle" letter-spacing="0">NAT 80/443</text>
+<text x="302" y="407" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">ไป VIP หลัง cutover</text>
+<circle cx="440" cy="330" r="34" fill="#7AA2FF" opacity="0.10"/>
+<circle cx="440" cy="330" r="24" fill="#0D1621" stroke="#7AA2FF" stroke-width="2.5"/>
+<circle cx="440" cy="330" r="15" fill="#0A1119" stroke="#7AA2FF" stroke-opacity="0.35" stroke-width="1"/>
+<text x="440" y="380" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">VIP</text>
+<text x="440" y="397" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7AA2FF" text-anchor="middle" letter-spacing="0">192.168.88.100</text>
+<text x="440" y="413" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">เช็กเว็บจริงทุกนาที</text>
+<circle cx="590" cy="170" r="34" fill="#7AA2FF" opacity="0.10"/>
+<circle cx="590" cy="170" r="24" fill="#0D1621" stroke="#7AA2FF" stroke-width="2.5"/>
+<circle cx="590" cy="170" r="15" fill="#0A1119" stroke="#7AA2FF" stroke-opacity="0.35" stroke-width="1"/>
+<text x="590" y="220" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">erp-gw-01</text>
+<text x="590" y="237" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7AA2FF" text-anchor="middle" letter-spacing="0">192.168.88.101</text>
+<text x="590" y="253" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">MASTER · nginx</text>
+<circle cx="590" cy="490" r="34" fill="#7AA2FF" opacity="0.10"/>
+<circle cx="590" cy="490" r="24" fill="#0D1621" stroke="#7AA2FF" stroke-width="2.5"/>
+<circle cx="590" cy="490" r="15" fill="#0A1119" stroke="#7AA2FF" stroke-opacity="0.35" stroke-width="1"/>
+<text x="590" y="540" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">erp-gw-02</text>
+<text x="590" y="557" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7AA2FF" text-anchor="middle" letter-spacing="0">192.168.88.102</text>
+<text x="590" y="573" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">BACKUP · nginx</text>
+<circle cx="812" cy="170" r="34" fill="#3DD6AE" opacity="0.10"/>
+<circle cx="812" cy="170" r="24" fill="#0D1621" stroke="#3DD6AE" stroke-width="2.5"/>
+<circle cx="812" cy="170" r="15" fill="#0A1119" stroke="#3DD6AE" stroke-opacity="0.35" stroke-width="1"/>
+<text x="812" y="220" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">erp-app-01</text>
+<text x="812" y="237" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">192.168.88.111</text>
+<text x="812" y="253" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">manager</text>
+<rect x="770.8" y="262" width="82" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="812.0" y="275" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">erpapp 8284</text>
+<rect x="749.5" y="284" width="82" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="790.7" y="297" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">erpapi 6334</text>
+<rect x="836.9" y="284" width="38" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="855.6999999999999" y="297" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">6344</text>
+<rect x="764.4" y="306" width="95" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="812.0" y="319" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">chat-api 6335</text>
+<circle cx="812" cy="490" r="34" fill="#3DD6AE" opacity="0.10"/>
+<circle cx="812" cy="490" r="24" fill="#0D1621" stroke="#3DD6AE" stroke-width="2.5"/>
+<circle cx="812" cy="490" r="15" fill="#0A1119" stroke="#3DD6AE" stroke-opacity="0.35" stroke-width="1"/>
+<text x="812" y="540" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">erp-app-02</text>
+<text x="812" y="557" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">192.168.88.112</text>
+<text x="812" y="573" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">worker</text>
+<rect x="770.8" y="582" width="82" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="812.0" y="595" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">erpapp 8284</text>
+<rect x="749.5" y="604" width="82" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="790.7" y="617" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">erpapi 6334</text>
+<rect x="836.9" y="604" width="38" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="855.6999999999999" y="617" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">6344</text>
+<rect x="764.4" y="626" width="95" height="17" rx="8.5" fill="#3DD6AE" fill-opacity="0.12" stroke="#3DD6AE" stroke-opacity="0.55"/>
+<text x="812.0" y="639" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#3DD6AE" text-anchor="middle" letter-spacing="0">chat-api 6335</text>
+<text x="812" y="342" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">ticker ×1 ทั้ง cluster</text>
+<circle cx="1088" cy="300" r="34" fill="#F2B455" opacity="0.10"/>
+<circle cx="1088" cy="300" r="24" fill="#0D1621" stroke="#F2B455" stroke-width="2.5"/>
+<circle cx="1088" cy="300" r="15" fill="#0A1119" stroke="#F2B455" stroke-opacity="0.35" stroke-width="1"/>
+<text x="1088" y="350" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="middle" letter-spacing="0">erp-db-01</text>
+<text x="1088" y="367" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#F2B455" text-anchor="middle" letter-spacing="0">192.168.88.12</text>
+<text x="1088" y="383" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="middle" letter-spacing="0">/srv บน iSCSI (NAS)</text>
+<text x="1010" y="404" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11.5" font-weight="600" fill="#E6EDF5" text-anchor="start" letter-spacing="0">SQL Server Express</text>
+<rect x="1140" y="392" width="38" height="17" rx="8.5" fill="#F2B455" fill-opacity="0.12" stroke="#F2B455" stroke-opacity="0.55"/>
+<text x="1158.8" y="405" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#F2B455" text-anchor="middle" letter-spacing="0">1433</text>
+<text x="1010" y="425" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11.5" font-weight="600" fill="#E6EDF5" text-anchor="start" letter-spacing="0">Redis</text>
+<rect x="1140" y="413" width="38" height="17" rx="8.5" fill="#F2B455" fill-opacity="0.12" stroke="#F2B455" stroke-opacity="0.55"/>
+<text x="1158.8" y="426" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#F2B455" text-anchor="middle" letter-spacing="0">6379</text>
+<text x="1010" y="446" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11.5" font-weight="600" fill="#E6EDF5" text-anchor="start" letter-spacing="0">RabbitMQ</text>
+<rect x="1140" y="434" width="38" height="17" rx="8.5" fill="#F2B455" fill-opacity="0.12" stroke="#F2B455" stroke-opacity="0.55"/>
+<text x="1158.8" y="447" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#F2B455" text-anchor="middle" letter-spacing="0">5672</text>
+<text x="1010" y="467" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11.5" font-weight="600" fill="#E6EDF5" text-anchor="start" letter-spacing="0">NFS erp-files</text>
+<rect x="1140" y="455" width="38" height="17" rx="8.5" fill="#F2B455" fill-opacity="0.12" stroke="#F2B455" stroke-opacity="0.55"/>
+<text x="1158.8" y="468" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="10.5" font-weight="600" fill="#F2B455" text-anchor="middle" letter-spacing="0">2049</text>
+<circle cx="1088" cy="104" r="34" fill="#B69CFF" opacity="0.10"/>
+<circle cx="1088" cy="104" r="24" fill="#0D1621" stroke="#B69CFF" stroke-width="2.5"/>
+<circle cx="1088" cy="104" r="15" fill="#0A1119" stroke="#B69CFF" stroke-opacity="0.35" stroke-width="1"/>
+<text x="1128" y="98" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="start" letter-spacing="0">erp-ci-01</text>
+<text x="1128" y="115" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#B69CFF" text-anchor="start" letter-spacing="0">192.168.88.131</text>
+<text x="1128" y="131" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">Jenkins 8110</text>
+<circle cx="1088" cy="588" r="20" fill="#111D2A" stroke="#7E8A98" stroke-width="1.6" stroke-dasharray="4 3"/>
+<rect x="1079" y="579" width="18" height="7" rx="1.5" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="1079" y="590" width="18" height="7" rx="1.5" stroke="#E6EDF5" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1120" y="582" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="15" font-weight="700" fill="#E6EDF5" text-anchor="start" letter-spacing="0">เครื่องเดิม</text>
+<text x="1120" y="599" font-family="JetBrains Mono, ui-monospace, Menlo, Consolas, Noto Sans Thai, monospace" font-size="11.5" font-weight="500" fill="#7E8A98" text-anchor="start" letter-spacing="0">192.168.88.11</text>
+<text x="1120" y="615" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">app 3030 · n8n 5678</text>
+<text x="1120" y="630" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">gateway ส่งต่อให้</text>
+<text x="1120" y="646" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">Zabbix 192.168.88.21</text>
+<rect x="22" y="538" width="330" height="104" rx="12" fill="#0D1621" fill-opacity="0.7" stroke="#1A2633"/>
+<circle cx="40" cy="556" r="6" fill="#12A15A"/>
+<text x="52" y="560" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#E6EDF5" text-anchor="start" letter-spacing="0">ปกติ</text>
+<circle cx="144" cy="556" r="6" fill="#D92D20"/>
+<text x="156" y="560" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#E6EDF5" text-anchor="start" letter-spacing="0">มีปัญหา</text>
+<circle cx="248" cy="556" r="6" fill="#8A94A0"/>
+<text x="260" y="560" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#E6EDF5" text-anchor="start" letter-spacing="0">ปิด / ซ่อมบำรุง</text>
+<path d="M34 580H64" fill="none" stroke="#8796A8" stroke-width="2" stroke-opacity="0.95"/>
+<text x="72" y="584" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">เส้นทางหลัก</text>
+<path d="M194 580H224" fill="none" stroke="#8796A8" stroke-width="2" stroke-opacity="0.8" stroke-dasharray="7 6"/>
+<text x="232" y="584" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">สำรอง (failover)</text>
+<path d="M34 602H64" fill="none" stroke="#8796A8" stroke-width="2" stroke-opacity="0.8" stroke-dasharray="1 6" stroke-linecap="round"/>
+<text x="72" y="606" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">heartbeat (VRRP)</text>
+<path d="M194 602H224" fill="none" stroke="#B69CFF" stroke-width="2" stroke-opacity="0.8" stroke-dasharray="10 5"/>
+<text x="232" y="606" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="11" font-weight="400" fill="#8796A8" text-anchor="start" letter-spacing="0">deploy</text>
+<text x="28" y="634" font-family="IBM Plex Sans Thai, Noto Sans Thai, Sukhumvit Set, Tahoma, sans-serif" font-size="10.5" font-weight="400" fill="#5D6B7C" text-anchor="start" letter-spacing="0">STACK_MODE=test จนถึงวัน cutover</text>
+</svg>

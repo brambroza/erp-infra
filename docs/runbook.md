@@ -206,4 +206,17 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
    read -s ZBX_TOKEN && export ZBX_TOKEN        # วาง token แล้ว Enter
    python3 monitoring/zabbix/make-map.py
    ```
-3. เปิด Dashboards → **ERP HA** · แก้ diagram แล้ว: render `docs/infra-diagram.svg` เป็น `monitoring/zabbix/map/erp-ha-background.png` (1240×680) แล้วรัน script ซ้ำ
+3. เปิด Dashboards → **ERP HA**
+4. แก้ภาพ topology: แก้ `monitoring/zabbix/map/gen_topology.py` → สร้าง `erp-ha-topology.svg` / `.png` (1240×680) → รัน script ซ้ำ (ถ้าย้ายตำแหน่งวง ต้องแก้ `DOTS` ใน make-map.py ด้วย)
+
+ทำมือแทน script: อัปโหลด `map/erp-ha-topology.png` เป็น Background ชื่อ `erp-ha-background` และจุด 3 สีเป็น Icon → สร้าง map 1240×680 → วาง element แบบ Host ตามพิกัด
+
+| Host | X | Y |
+|---|---|---|
+| erp-vip | 426 | 316 |
+| erp-gw-01 | 576 | 156 |
+| erp-gw-02 | 576 | 476 |
+| erp-app-01 | 798 | 156 |
+| erp-app-02 | 798 | 476 |
+| erp-db-01 | 1074 | 286 |
+| erp-ci-01 | 1074 | 90 |
