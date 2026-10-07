@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1240 680" width="1240" height="680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 / erp-gw-02) → Docker Swarm erp-app-01 / erp-app-02 → erp-db-01; Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01">
+<svg viewBox="0 0 1240 720" width="1240" height="720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ERP infra: ผู้ใช้ → Cloudflare → Router → VIP 192.168.88.100 (erp-gw-01 / erp-gw-02) → Docker Swarm erp-app-01 / erp-app-02 → erp-db-01 (backup ส่งออก FTP นอกออฟฟิศทุกคืน); Jenkins erp-ci-01 deploy ผ่าน ssh เข้า erp-app-01">
 <title>ERP infra diagram</title>
 <style>
 :root, svg { --bg:#FBFCFD; --card:#FFFFFF; --ink:#17212B; --muted:#5E6B78; --rule:#D5DCE3; --edge:#3451B2;--edge-lane:#E9EEFB;--edge-head:#F3F6FD;--app:#0E7C66;--app-lane:#E5F3EF;--app-head:#F1F9F6;--data:#A86412;--data-lane:#F8EEDF;--data-head:#FCF6EC;--ci:#6B45C2;--ci-lane:#EEE9FA;--ci-head:#F6F3FD;--old:#7D8894;--old-lane:#EEF0F2;--old-head:#F6F7F8; }
@@ -43,7 +43,7 @@ text { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", "Su
 <marker id="m-old" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk old" d="M0 1L9 5L0 9z"/></marker>
 <marker id="m-mut" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 1L9 5L0 9z"/></marker>
 </defs>
-<rect class="bg" width="1240" height="680" rx="14"/>
+<rect class="bg" width="1240" height="720" rx="14"/>
 <rect class="lane old" x="16" y="20" width="184" height="430" rx="16"/>
 <text class="lanet old" x="32" y="44">INTERNET</text>
 <rect class="lane edge" x="214" y="20" width="236" height="516" rx="16"/>
@@ -179,7 +179,7 @@ text { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", "Su
 <text class="note" x="864" y="278">ไฟล์ upload ของ erpapi + chat-api (uid 5678)</text>
 <line class="cardsep data" x1="864" y1="298" x2="1194" y2="298"/>
 <text class="note" x="864" y="320">/srv = ดิสก์ iSCSI จาก NAS</text>
-<text class="note" x="864" y="338">backup DB ทุกคืน 01:00 เก็บ 7 วัน</text>
+<text class="note" x="864" y="338">backup DB ทุกคืน 01:00 เก็บ 7 วัน → ส่งออก FTP</text>
 <path class="ar data" d="M804 200H826V180H848" marker-end="url(#m-data)"/>
 <path class="ar data" d="M804 470H826V230H848" marker-end="url(#m-data)"/>
 <rect class="card ci" x="850" y="410" width="358" height="96" rx="10"/>
@@ -194,6 +194,14 @@ text { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", "Su
 <path class="ar ci" d="M850 482H836V600H642V582" marker-end="url(#m-ci)"/>
 <text class="lab" x="632" y="596" text-anchor="end">ssh deploy@erp-app-01</text>
 <text class="lab" x="632" y="611" text-anchor="end">แก้ tag แล้ว stack deploy</text>
+<rect class="lane data" x="834" y="612" width="390" height="96" rx="16"/>
+<text class="lanet data" x="850" y="636">OFFSITE BACKUP</text>
+<rect class="card data" x="850" y="646" width="358" height="52" rx="10" stroke-dasharray="5 4"/>
+<text class="svc" x="864" y="668">FTP server นอกออฟฟิศ</text>
+<rect class="chip data" x="1010" y="655" width="44" height="18" rx="9"/>
+<text class="chipt data" x="1032" y="668" text-anchor="middle">FTPS</text>
+<text class="note" x="864" y="687">gzip + .sha256 · ส่งต่อจาก backup 01:00 · เก็บ 30 วัน</text>
+<path class="ar data" d="M1208 330H1232V672H1212" marker-end="url(#m-data)"/>
 <path class="ar" d="M32 576H66" marker-end="url(#m-mut)"/>
 <text class="lab" x="76" y="580">request / งาน</text>
 <path class="hb" d="M32 598H66"/>
