@@ -11,7 +11,7 @@ HOST="$(hostname)"
 case "$HOST" in
   "$GW_MASTER_HOST"|"$GW_BACKUP_HOST") SETS="gw";            KEYS="erp.vip erp.cert.days proc.num[keepalived] proc.num[nginx] web.page.get[127.0.0.1,basic_status,8081]" ;;
   "$SVC1_HOST")                        SETS="node manager";  KEYS="erp.node.containers erp.node.nfs proc.num[dockerd] erp.swarm.nodes.bad erp.swarm.failed erp.swarm.missing[erp_erpapi] erp.swarm.discovery" ;;
-  "$DATA_HOST")                        SETS="data";          KEYS="erp.db[collect_age] erp.db[srv_mounted] erp.db[backup_age_h] erp.db[backup_size_mb] erp.db[c_mssql] erp.db[c_redis] erp.db[c_rabbitmq] erp.db[mssql_online] erp.db[mssql_data_mb] erp.db[redis_ping] erp.db[redis_mem_pct] erp.db[rabbit_ok] erp.db[rabbit_alarm] erp.db[rabbit_max_queue] erp.db[nfs_server] erp.db[nfs_export]" ;;
+  "$DATA_HOST")                        SETS="data";          KEYS="erp.db[collect_age] erp.db[srv_mounted] erp.db[backup_age_h] erp.db[backup_size_mb] erp.db[offsite_age_h] erp.db[c_mssql] erp.db[c_redis] erp.db[c_rabbitmq] erp.db[mssql_online] erp.db[mssql_data_mb] erp.db[redis_ping] erp.db[redis_mem_pct] erp.db[rabbit_ok] erp.db[rabbit_alarm] erp.db[rabbit_max_queue] erp.db[nfs_server] erp.db[nfs_export]" ;;
   "$SVC2_HOST")                        SETS="node";          KEYS="erp.node.containers erp.node.nfs proc.num[dockerd]" ;;
   *) echo "$HOST: ยังไม่มีชุดเช็กเฉพาะ — ใช้ template Linux ใน Zabbix ไปก่อน"; exit 0 ;;
 esac

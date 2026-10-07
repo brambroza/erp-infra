@@ -73,6 +73,48 @@ copy ไฟล์ Data API (volume ของ go-crmapi24) จากเครื�
 sudo rsync -aH --numeric-ids <path volume เดิม>/ root@erp-db-01:/srv/nfs/erp-files/
 ```
 
+### 2.1 ส่ง backup ออกนอกเครื่อง (FTP)
+
+ทุกคืน 01:00 หลัง backup เสร็จ `mssql-backup.sh` จะเรียก `backup-offsite.sh` ให้ส่งไฟล์ขึ้น FTP:
+`.bak` → gzip → เข้ารหัส AES-256 (ถ้าตั้ง `BACKUP_ENC_PASS`) → `/srv/mssql/offsite/` → ขึ้น FTP ที่ `<BACKUP_FTP_DIR>/mssql/` พร้อม `.sha256`
+ส่งเฉพาะไฟล์ที่ยังไม่มีบน FTP (คืนไหนล้ม คืนถัดไปส่งตามเอง) และลบไฟล์บน FTP ที่เก่ากว่า `BACKUP_FTP_KEEP_DAYS` วัน
+
+ติดตั้ง (erp-db-01 ครั้งเดียว — ไม่ต้องรัน 20-data.sh ทั้งไฟล์):
+
+```bash
+cd /opt/erp-infra && sudo git pull
+sudo apt-get -y install lftp
+sudo install -m 750 data/mssql-backup.sh   /usr/local/bin/mssql-backup.sh
+sudo install -m 750 data/backup-offsite.sh /usr/local/bin/backup-offsite.sh
+sudo vi /opt/data/.env        # เพิ่มบล็อก BACKUP_FTP_* / BACKUP_ENC_PASS (ดู data/.env.example)
+sudo /usr/local/bin/backup-offsite.sh --test     # login + เขียน/ลบไฟล์ทดสอบ ไม่ส่ง backup
+sudo /usr/local/bin/backup-offsite.sh            # ส่งของที่มีอยู่ตอนนี้ขึ้นไปเลย (ไม่ต้องรอคืนนี้)
+sudo /opt/erp-infra/scripts/50-zabbix.sh             # อัปเดตตัวเก็บค่าให้มี offsite_age_h
+```
+
+แล้ว import `monitoring/zabbix/template-erp-data.yaml` ซ้ำ (เพิ่ม item "อายุ backup นอกเครื่อง (FTP) ล่าสุด" + trigger >26 ชม.)
+
+`BACKUP_ENC_PASS` ต้องเก็บสำเนาไว้ที่อื่นด้วย (password manager) — ถ้าเครื่องนี้หายและไม่มีรหัสนี้ ไฟล์บน FTP กู้คืนไม่ได้
+
+ถ้า `--test` ล้ม:
+
+| อาการ | สาเหตุที่พบบ่อย |
+| --- | --- |
+| `Login incorrect` | user / pass ผิด หรือรหัสมี `'` (ใส่ไม่ได้) |
+| ค้างที่ `Connecting` / timeout | port ถูกบล็อก หรือ IP ของออฟฟิศไม่อยู่ใน whitelist ของ FTP |
+| login ได้แต่ค้างตอน `put` / `cls` | passive port ของ FTP ฝั่งปลายทางไม่เปิด |
+| error เรื่อง SSL / TLS | ตั้ง `BACKUP_FTP_TLS=off` (FTP ธรรมดา) หรือ `force` ถ้า server บังคับ TLS |
+
+กู้คืนจาก FTP (ทำบนเครื่องที่มี SQL Server):
+
+```bash
+lftp -p <port> -u <user> <host> -e "cd /erp-backup/mssql; cls -lt | head; get GoAlongDatabase_<วันที่>.bak.gz.enc; get GoAlongDatabase_<วันที่>.bak.gz.enc.sha256; bye"
+sha256sum -c GoAlongDatabase_<วันที่>.bak.gz.enc.sha256
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in GoAlongDatabase_<วันที่>.bak.gz.enc -pass stdin | gunzip > /srv/mssql/backup/restore.bak
+#   (ไม่ได้เข้ารหัส: gunzip -c GoAlongDatabase_<วันที่>.bak.gz > /srv/mssql/backup/restore.bak)
+# แล้ว RESTORE DATABASE ... FROM DISK='/var/opt/mssql/backup/restore.bak' (ดูตัวอย่างด้านบน — ทดสอบกับชื่อ DB ใหม่ก่อน อย่าทับของจริง)
+```
+
 ## 3. Swarm
 
 ```bash

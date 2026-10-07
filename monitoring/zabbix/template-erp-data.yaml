@@ -77,6 +77,23 @@ zabbix_export:
         expression: last(/ERP Data/erp.db[backup_size_mb])<last(/ERP Data/erp.db[backup_size_mb],#2)*0.5
         name: ไฟล์ backup เล็กลงเกินครึ่งจากรอบก่อน — ตรวจว่า backup สมบูรณ์
         priority: WARNING
+    - uuid: 348166c2d8b34667a00dbcac6a304233
+      name: อายุ backup นอกเครื่อง (FTP) ล่าสุด
+      key: erp.db[offsite_age_h]
+      delay: 10m
+      history: 30d
+      value_type: FLOAT
+      description: '-2 = ไม่ได้ตั้ง BACKUP_FTP_HOST, -1 = ตั้งแล้วแต่ยังไม่เคยส่งสำเร็จ'
+      tags:
+      - tag: component
+        value: backup
+      units: h
+      triggers:
+      - uuid: 30086361a64442b3a49ba51275a349a2
+        expression: last(/ERP Data/erp.db[offsite_age_h])>26 or last(/ERP Data/erp.db[offsite_age_h])=-1
+        name: backup ไม่ได้ส่งออกนอกเครื่อง (FTP) เกิน 26 ชั่วโมง (อายุ {ITEM.LASTVALUE})
+        priority: AVERAGE
+        description: tail -50 /var/log/mssql-backup.log · ทดสอบ sudo /usr/local/bin/backup-offsite.sh --test
     - uuid: debb74ac4d23451ea1d5f1d5e5d161e8
       name: container SQL Server ที่รัน
       key: erp.db[c_mssql]

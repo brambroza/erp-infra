@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# full backup ทุกคืน (cron 01:00) เก็บในเครื่อง 7 วัน แล้ว copy ไปนอกเครื่อง
+# full backup ทุกคืน (cron 01:00) เก็บในเครื่อง 7 วัน แล้ว copy ไปนอกเครื่อง (rsync: BACKUP_TARGET / FTP: BACKUP_FTP_*)
 # Express ไม่รองรับ WITH COMPRESSION — ไฟล์ .bak จะขนาดใกล้เคียงข้อมูลจริง
 set -euo pipefail
 set -a
@@ -21,3 +21,8 @@ if [ -n "${BACKUP_TARGET:-}" ]; then
   rsync -a /srv/nfs/erp-files/ "${BACKUP_TARGET%/}-files/"
 fi
 echo "$(date -Is) backup ok: $MSSQL_BACKUP_DBS"
+
+# ส่งออกนอกเครื่องผ่าน FTP (ตั้ง BACKUP_FTP_* ใน /opt/data/.env) — ล้มไม่กระทบ backup ในเครื่อง, Zabbix เตือนเอง
+if [ -n "${BACKUP_FTP_HOST:-}" ]; then
+  /usr/local/bin/backup-offsite.sh || { echo "$(date -Is) offsite FAILED (ดูข้อความด้านบน)"; exit 2; }
+fi

@@ -53,6 +53,10 @@ case "${1:-}" in
         echo "backup_age_h=$(( ( $(date +%s) - $(stat -c %Y "$f") ) / 3600 ))"
         echo "backup_size_mb=$(( $(stat -c %s "$f") / 1048576 ))"
       else echo backup_age_h=-1; echo backup_size_mb=0; fi
+      # ส่ง FTP สำเร็จล่าสุดกี่ชั่วโมงแล้ว (-2 = ไม่ได้ตั้ง FTP, -1 = ตั้งแล้วแต่ยังไม่เคยสำเร็จ)
+      if [ -z "${BACKUP_FTP_HOST:-}" ]; then echo offsite_age_h=-2
+      elif [ -s /var/lib/erp-backup/offsite.ok ]; then echo "offsite_age_h=$(( ( $(date +%s) - $(cat /var/lib/erp-backup/offsite.ok) ) / 3600 ))"
+      else echo offsite_age_h=-1; fi
       for s in mssql redis rabbitmq; do
         echo "c_$s=$(docker ps -q --filter label=com.docker.compose.project=data --filter "label=com.docker.compose.service=$s" | wc -l)"
       done

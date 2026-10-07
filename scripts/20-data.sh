@@ -43,5 +43,7 @@ for i in $(seq 30); do "$DIR/data/dc.sh" exec -T rabbitmq rabbitmq-diagnostics -
   '{"max-length":10000,"message-ttl":604800000,"overflow":"drop-head"}'
 
 install -m 750 "$DIR/data/mssql-backup.sh" /usr/local/bin/mssql-backup.sh
+apt-get -y install lftp
+install -m 750 "$DIR/data/backup-offsite.sh" /usr/local/bin/backup-offsite.sh
 echo "0 1 * * * root /usr/local/bin/mssql-backup.sh >> /var/log/mssql-backup.log 2>&1" > /etc/cron.d/mssql-backup
 echo "erp-db-01 พร้อม"
