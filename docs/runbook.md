@@ -185,7 +185,7 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 ## 7. Cutover
 
 1. หยุด go-crmapi24, go-chat-api และ go-ticker-job บนเครื่องเดิม
-2. backup → restore SQL รอบสุดท้าย และ rsync ไฟล์ Data API รอบสุดท้าย
+2. backup → restore SQL รอบสุดท้าย และ rsync ไฟล์ Data API รอบสุดท้าย (คำสั่งครบในข้อ 7.1)
 3. รอให้ queue ของ RabbitMQ ว่าง แล้ว import definitions เข้า erp-db-01
 4. บน erp-app-01 แก้ `/opt/erp-infra/stacks/erp/versions.env`: `STACK_MODE=live` และ `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh` (ต้องขึ้นข้อความ `STACK_MODE=live`)
    - แก้ครั้งเดียวพอ — Jenkins แก้เฉพาะบรรทัด `*_TAG` ในไฟล์นี้ deploy ครั้งต่อไปยังเป็น live
@@ -194,6 +194,75 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 5. เปลี่ยน port forward 80/443 บน Router ให้ชี้ไปที่ VIP
 6. ไล่ทดสอบตามตารางข้อ 6
 7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ erp-gw-01/erp-gw-02 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
+
+### 7.1 คำสั่ง backup / rsync / restore วัน cutover
+
+เครื่องเดิม 192.168.88.11 (SQL ใน container `sqlserverhighperf`, ไฟล์ที่ `/mnt/docker-data/binds/VolumsAPI`) → erp-db-01 192.168.88.12
+
+**A. ก่อนวัน cutover (ระบบเดิมยังเปิด) — ทำซ้ำได้ ไม่กระทบเครื่องเดิม**
+
+```bash
+# erp-db-01: ที่พักไฟล์ + ดูที่ว่าง
+sudo install -d -o goalong -g goalong /srv/migrate/erp-files
+df -h /srv
+# เครื่องเดิม: ขนาดไฟล์ แล้ว sync รอบแรก (ใช้เวลานานสุด — วันจริงจะส่งแค่ส่วนที่เปลี่ยน)
+sudo du -sh /mnt/docker-data/binds/VolumsAPI
+sudo rsync -aH --delete --info=stats1 /mnt/docker-data/binds/VolumsAPI/ goalong@192.168.88.12:/srv/migrate/erp-files/
+```
+
+ซ้อม restore ด้วยขั้น C–D ได้เลย (DB บน erp-db-01 ตอนนี้เป็นข้อมูลทดสอบ ทับได้)
+
+**B. วัน cutover — เครื่องเดิม: หยุดแอป → backup → ส่งไฟล์**
+
+```bash
+# erp-app-01 ก่อน: หยุดแอปฝั่งใหม่ไม่ให้ต่อ DB ระหว่าง restore
+docker service scale erp_erpapi=0 erp_chat-api=0
+
+# เครื่องเดิม
+sudo docker stop go-crmapp24 go-chat-api go-ticker-job go-crmapi24
+sudo docker exec rabbitmq rabbitmqctl list_queues name messages      # log_queue ค้างได้ (เป็น log) — จดตัวเลขไว้
+
+SQLCMD=$(sudo docker exec sqlserverhighperf sh -c 'ls /opt/mssql-tools18/bin/sqlcmd /opt/mssql-tools/bin/sqlcmd 2>/dev/null | head -1')
+C=""; case "$SQLCMD" in *tools18*) C="-C";; esac
+read -rsp "sa password เครื่องเดิม: " SQLPW; echo
+F=GoAlongDatabase_cutover_$(date +%F_%H%M).bak
+sudo docker exec -e SQLCMDPASSWORD="$SQLPW" sqlserverhighperf $SQLCMD -S localhost -U sa $C -b \
+  -Q "BACKUP DATABASE [GoAlongDatabase] TO DISK='/var/opt/mssql/data/$F' WITH COPY_ONLY, CHECKSUM, INIT, STATS=25"
+# ตัวเลขไว้เทียบหลัง restore
+sudo docker exec -e SQLCMDPASSWORD="$SQLPW" sqlserverhighperf $SQLCMD -S localhost -U sa $C -h -1 -W -d GoAlongDatabase \
+  -Q "SET NOCOUNT ON; SELECT 'tables=' + CAST(COUNT(DISTINCT p.object_id) AS varchar) + ' rows=' + CAST(SUM(p.rows) AS varchar) FROM sys.partitions p JOIN sys.tables t ON t.object_id=p.object_id WHERE p.index_id IN (0,1)"
+sudo docker cp sqlserverhighperf:/var/opt/mssql/data/$F /tmp/$F
+sha256sum /tmp/$F
+scp /tmp/$F goalong@192.168.88.12:/tmp/
+
+# ไฟล์ upload รอบสุดท้าย (แอปหยุดแล้ว ไม่มีไฟล์ใหม่) + นับไว้เทียบ
+sudo rsync -aH --delete --info=stats1 /mnt/docker-data/binds/VolumsAPI/ goalong@192.168.88.12:/srv/migrate/erp-files/
+sudo find /mnt/docker-data/binds/VolumsAPI -type f | wc -l
+```
+
+**C. erp-db-01: restore DB**
+
+```bash
+F=GoAlongDatabase_cutover_<วันที่_เวลา>.bak       # ชื่อเดียวกับข้อ B
+sha256sum /tmp/$F                                   # ต้องตรงกับเครื่องเดิม
+sudo mv /tmp/$F /srv/mssql/backup/
+sudo /opt/erp-infra/data/restore-db.sh /srv/mssql/backup/$F
+# ดู tables= rows= ท้าย output ต้องเท่ากับที่เครื่องเดิมพิมพ์
+```
+
+**D. erp-db-01: ไฟล์ upload เข้า NFS**
+
+```bash
+sudo rsync -a --info=stats1 /srv/migrate/erp-files/ /srv/nfs/erp-files/
+sudo chown -R 5678:5678 /srv/nfs/erp-files
+sudo find /srv/migrate/erp-files -type f | wc -l     # ต้องเท่ากับเครื่องเดิม
+```
+
+**E. erp-app-01: เปิดระบบใหม่** — `versions.env`: `STACK_MODE=live`, `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh`
+(deploy คืนจำนวน replica ของ erpapi / chat-api ตามไฟล์ให้เอง) แล้วไล่ทดสอบตามข้อ 6
+
+ถ้าต้องย้อนกลับก่อนประกาศเปิด: เครื่องเดิม `sudo docker start go-crmapi24 go-chat-api go-ticker-job go-crmapp24`
+(DB เดิมไม่ถูกแตะ — backup ใช้ COPY_ONLY ไม่กระทบ backup chain ของเครื่องเดิม)
 
 ## Rollback
 
