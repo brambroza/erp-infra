@@ -187,7 +187,10 @@ while true; do printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' https://ap
 1. หยุด go-crmapi24, go-chat-api และ go-ticker-job บนเครื่องเดิม
 2. backup → restore SQL รอบสุดท้าย และ rsync ไฟล์ Data API รอบสุดท้าย
 3. รอให้ queue ของ RabbitMQ ว่าง แล้ว import definitions เข้า erp-db-01
-4. ตั้ง `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh`
+4. บน erp-app-01 แก้ `/opt/erp-infra/stacks/erp/versions.env`: `STACK_MODE=live` และ `TICKER_REPLICAS=1` แล้ว `./deploy-stack.sh` (ต้องขึ้นข้อความ `STACK_MODE=live`)
+   - แก้ครั้งเดียวพอ — Jenkins แก้เฉพาะบรรทัด `*_TAG` ในไฟล์นี้ deploy ครั้งต่อไปยังเป็น live
+   - ห้าม `git checkout versions.env` / `git stash` บน erp-app-01 หลังจากนี้ ไม่งั้นกลับเป็น test + ticker 0
+   - ปิด job deploy ของ Jenkins เครื่องเดิม (Disable) กันคนกด deploy ไปเครื่องเก่า
 5. เปลี่ยน port forward 80/443 บน Router ให้ชี้ไปที่ VIP
 6. ไล่ทดสอบตามตารางข้อ 6
 7. บนเครื่องเดิม: เปิด port 3030, 5678, 10053 ให้ erp-gw-01/erp-gw-02 เข้าถึง แล้วปิด nginx ตัวเดิม เก็บ container เดิมไว้ 1 สัปดาห์เผื่อย้อนกลับ
