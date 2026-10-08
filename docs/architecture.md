@@ -91,6 +91,8 @@ push `main` ของแอป → GitHub Actions build แล้ว push image 
 สูตร: Disk = (storage + image) × 1.4 · RAM = ค่าที่วัดได้ × 1.2
 Spec VM = ค่าที่ได้ + OS (RAM 1 GB, disk 20 GB) แล้วปัดขึ้นเป็นขนาดมาตรฐาน
 
+spec ล่าสุด (รวม erp-db-02 แผน 2) และการวางบน 2 datastore: [vm-spec.md](vm-spec.md)
+
 | VM | Disk ใช้ (+40%) | RAM ใช้ (+20%) | vCPU | RAM แนะนำ | Disk แนะนำ |
 |---|---:|---:|---:|---:|---:|
 | erp-gw-01 | – | 0.1 GB | 1 | 2 GB | 20 GB |

@@ -59,7 +59,7 @@ erp-infra/
 ├── data/                      # compose.yml, dc.sh, .env.example, mssql-backup.sh
 ├── stacks/erp/                # stack.yml, versions.env, *.env.example, deploy-stack.sh, wait-converge.sh
 ├── jenkins/                   # Dockerfile, compose.yml, dc.sh, Jenkinsfile.deploy, Jenkinsfile.build.example
-└── docs/                      # architecture.md, migration-plan.md, runbook.md, router/, infra-diagram.svg
+└── docs/                      # architecture.md, vm-spec.md, migration-plan.md, runbook.md, router/, infra-diagram*.svg
 ```
 
 ## ลำดับติดตั้งแบบย่อ
